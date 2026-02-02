@@ -1,8 +1,9 @@
 (() => {
-  // ----------------------------
+  // ============================================================
   // CONFIG
-  // ----------------------------
+  // ============================================================
   const WIDTH = 960, HEIGHT = 540;
+
   const GRAVITY = 0.9;
   const MOVE_SPEED = 6.2;
   const JUMP_SPEED = 19.5;
@@ -39,136 +40,77 @@
   // Questions per level
   const QUESTIONS_PER_LEVEL = 4;
 
-  // ----------------------------
+  // ============================================================
   // QUESTIONS
-  // ----------------------------
+  // ============================================================
   const QUESTIONS_BY_LEVEL = {
     1: [
-      {
-        year: "1964",
-        question: "Which band helped spark 'Beatlemania' in the U.S. after appearing on The Ed Sullivan Show?",
-        options: ["The Rolling Stones", "The Beatles", "The Kinks"],
-        answer: "The Beatles",
-        fact: "The Beatles' Ed Sullivan appearance (1964) became a major pop culture moment.",
-      },
-      {
-        year: "1969",
-        question: "Which music festival became a famous symbol of 1960s youth culture and peace?",
-        options: ["Altamont", "Monterey Pop Festival", "Woodstock"],
-        answer: "Woodstock",
-        fact: "Woodstock (1969) is one of the most iconic music festivals ever.",
-      },
-      {
-        year: "1968",
-        question: "Which Beatles song was written as a message of encouragement?",
-        options: ["Hey Jude", "Good Vibrations", "Light My Fire"],
-        answer: "Hey Jude",
-        fact: "‘Hey Jude’ (1968) became one of The Beatles’ biggest worldwide hits.",
-      },
-      {
-        year: "1964",
-        question: "Which boxer won the heavyweight title in 1964 and later became known as Muhammad Ali?",
-        options: ["Joe Frazier", "Cassius Clay", "George Foreman"],
-        answer: "Cassius Clay",
-        fact: "Cassius Clay later changed his name to Muhammad Ali.",
-      },
+      { year:"1964", question:"Which band helped spark 'Beatlemania' in the U.S. after appearing on The Ed Sullivan Show?",
+        options:["The Rolling Stones","The Beatles","The Kinks"], answer:"The Beatles",
+        fact:"The Beatles' Ed Sullivan appearance (1964) became a major pop culture moment." },
+      { year:"1969", question:"Which music festival became a famous symbol of 1960s youth culture and peace?",
+        options:["Altamont","Monterey Pop Festival","Woodstock"], answer:"Woodstock",
+        fact:"Woodstock (1969) is one of the most iconic music festivals ever." },
+      { year:"1968", question:"Which Beatles song was written as a message of encouragement?",
+        options:["Hey Jude","Good Vibrations","Light My Fire"], answer:"Hey Jude",
+        fact:"‘Hey Jude’ (1968) became one of The Beatles’ biggest worldwide hits." },
+      { year:"1964", question:"Which boxer won the heavyweight title in 1964 and later became known as Muhammad Ali?",
+        options:["Joe Frazier","Cassius Clay","George Foreman"], answer:"Cassius Clay",
+        fact:"Cassius Clay later changed his name to Muhammad Ali." },
     ],
     2: [
-      {
-        year: "1969",
-        question: "What early computer network created in 1969 later evolved into the internet?",
-        options: ["World Wide Web", "Bluetooth", "ARPANET"],
-        answer: "ARPANET",
-        fact: "ARPANET connected early computers and became a foundation for the internet.",
-      },
-      {
-        year: "1960s",
-        question: "Which invention replaced vacuum tubes and helped computers become smaller and faster?",
-        options: ["Typewriters", "Transistors", "Candles"],
-        answer: "Transistors",
-        fact: "Transistors were smaller and more efficient than vacuum tubes.",
-      },
-      {
-        year: "1968",
-        question: "Who demonstrated early versions of the computer mouse and modern-style computing in 1968?",
-        options: ["Douglas Engelbart", "Thomas Edison", "Henry Ford"],
-        answer: "Douglas Engelbart",
-        fact: "Engelbart’s 1968 demo showcased the mouse and new ways to interact with computers.",
-      },
-      {
-        year: "1971",
-        question: "Which invention introduced in 1971 is often considered the first widely used microprocessor?",
-        options: ["CD player", "GPS receiver", "Intel 4004"],
-        answer: "Intel 4004",
-        fact: "The Intel 4004 helped start the microprocessor revolution in computing.",
-      },
+      { year:"1969", question:"What early computer network created in 1969 later evolved into the internet?",
+        options:["World Wide Web","Bluetooth","ARPANET"], answer:"ARPANET",
+        fact:"ARPANET connected early computers and became a foundation for the internet." },
+      { year:"1960s", question:"Which invention replaced vacuum tubes and helped computers become smaller and faster?",
+        options:["Typewriters","Transistors","Candles"], answer:"Transistors",
+        fact:"Transistors were smaller and more efficient than vacuum tubes." },
+      { year:"1968", question:"Who demonstrated early versions of the computer mouse and modern-style computing in 1968?",
+        options:["Douglas Engelbart","Thomas Edison","Henry Ford"], answer:"Douglas Engelbart",
+        fact:"Engelbart’s 1968 demo showcased the mouse and new ways to interact with computers." },
+      { year:"1971", question:"Which invention introduced in 1971 is often considered the first widely used microprocessor?",
+        options:["CD player","GPS receiver","Intel 4004"], answer:"Intel 4004",
+        fact:"The Intel 4004 helped start the microprocessor revolution in computing." },
     ],
     3: [
-      {
-        year: "1961",
-        question: "Which technology made the first human spaceflight possible?",
-        options: ["Rocket propulsion", "Jet skis", "Steam engines"],
-        answer: "Rocket propulsion",
-        fact: "Powerful rockets made it possible to launch spacecraft into orbit.",
-      },
-      {
-        year: "1969",
-        question: "Which mission first landed humans on the Moon?",
-        options: ["Apollo 8", "Apollo 11", "Apollo 13"],
-        answer: "Apollo 11",
-        fact: "Apollo 11 landed astronauts on the Moon in July 1969.",
-      },
-      {
-        year: "1960s",
-        question: "Which technology allowed phone calls and TV signals to be sent long distances around the world more easily?",
-        options: ["Horse-drawn wagons", "Communication satellites", "Smoke signals"],
-        answer: "Communication satellites",
-        fact: "Satellites enabled fast long-distance communication and live international broadcasts.",
-      },
-      {
-        year: "1960s",
-        question: "Which medical technology helped doctors perform complex heart surgeries by circulating blood during operations?",
-        options: ["Heart-lung machine", "Thermometer", "Stethoscope"],
-        answer: "Heart-lung machine",
-        fact: "Heart-lung machines made many open-heart surgeries possible.",
-      },
+      { year:"1961", question:"Which technology made the first human spaceflight possible?",
+        options:["Rocket propulsion","Jet skis","Steam engines"], answer:"Rocket propulsion",
+        fact:"Powerful rockets made it possible to launch spacecraft into orbit." },
+      { year:"1969", question:"Which mission first landed humans on the Moon?",
+        options:["Apollo 8","Apollo 11","Apollo 13"], answer:"Apollo 11",
+        fact:"Apollo 11 landed astronauts on the Moon in July 1969." },
+      { year:"1960s", question:"Which technology allowed phone calls and TV signals to be sent long distances around the world more easily?",
+        options:["Horse-drawn wagons","Communication satellites","Smoke signals"], answer:"Communication satellites",
+        fact:"Satellites enabled fast long-distance communication and live international broadcasts." },
+      { year:"1960s", question:"Which medical technology helped doctors perform complex heart surgeries by circulating blood during operations?",
+        options:["Heart-lung machine","Thermometer","Stethoscope"], answer:"Heart-lung machine",
+        fact:"Heart-lung machines made many open-heart surgeries possible." },
     ],
     4: [
-      {
-        year: "1961",
-        question: "Which dance became a huge early-1960s craze?",
-        options: ["Disco", "Breakdancing", "The Twist"],
-        answer: "The Twist",
-        fact: "The Twist became a major dance craze in the early 1960s.",
-      },
-      {
-        year: "1960s",
-        question: "Which animated TV family lived in the Stone Age but acted like a modern family?",
-        options: ["The Jetsons", "Scooby-Doo", "The Flintstones"],
-        answer: "The Flintstones",
-        fact: "The Flintstones became a classic animated show of the era.",
-      },
-      {
-        year: "1966",
-        question: "Which TV/music group starred in a show about a made-for-TV band?",
-        options: ["The Beach Boys", "The Monkees", "The Doors"],
-        answer: "The Monkees",
-        fact: "The Monkees were created for TV and became a real hit music group.",
-      },
-      {
-        year: "early 1970s",
-        question: "Which genre grew rapidly from the late 1960s into the 1970s and dominated youth music?",
-        options: ["Rock", "Hip-hop", "EDM"],
-        answer: "Rock",
-        fact: "Rock music expanded into many styles and became a major force in the 1970s.",
-      },
+      { year:"1961", question:"Which dance became a huge early-1960s craze?",
+        options:["Disco","Breakdancing","The Twist"], answer:"The Twist",
+        fact:"The Twist became a major dance craze in the early 1960s." },
+      { year:"1960s", question:"Which animated TV family lived in the Stone Age but acted like a modern family?",
+        options:["The Jetsons","Scooby-Doo","The Flintstones"], answer:"The Flintstones",
+        fact:"The Flintstones became a classic animated show of the era." },
+      { year:"1966", question:"Which TV/music group starred in a show about a made-for-TV band?",
+        options:["The Beach Boys","The Monkees","The Doors"], answer:"The Monkees",
+        fact:"The Monkees were created for TV and became a real hit music group." },
+      { year:"early 1970s", question:"Which genre grew rapidly from the late 1960s into the 1970s and dominated youth music?",
+        options:["Rock","Hip-hop","EDM"], answer:"Rock",
+        fact:"Rock music expanded into many styles and became a major force in the 1970s." },
     ],
   };
 
-  // ----------------------------
-  // Helpers
-  // ----------------------------
+  // ============================================================
+  // HELPERS
+  // ============================================================
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const rect = (x, y, w, h) => ({ x, y, w, h });
+
+  function intersects(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
 
   function wrapLines(ctx, text, maxWidth) {
     const words = text.split(" ");
@@ -177,42 +119,40 @@
     for (const w of words) {
       const test = (cur ? cur + " " : "") + w;
       if (ctx.measureText(test).width <= maxWidth) cur = test;
-      else {
-        if (cur) lines.push(cur);
-        cur = w;
-      }
+      else { if (cur) lines.push(cur); cur = w; }
     }
     if (cur) lines.push(cur);
     return lines;
   }
 
-  function rect(x, y, w, h) { return { x, y, w, h }; }
-
-  function intersects(a, b) {
-    return a.x < b.x + b.w &&
-           a.x + a.w > b.x &&
-           a.y < b.y + b.h &&
-           a.y + a.h > b.y;
+  function roundRect(ctx, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
   }
 
   function coinOnPlatform(p) {
     return rect(
       p.x + Math.floor(p.w / 2) - Math.floor(COIN_SIZE / 2),
       p.y - COIN_SIZE - 2,
-      COIN_SIZE,
-      COIN_SIZE
+      COIN_SIZE, COIN_SIZE
     );
   }
 
-  // ----------------------------
-  // WebAudio simple sounds
-  // ----------------------------
+  // ============================================================
+  // AUDIO (WebAudio) — safe + simple
+  // ============================================================
   let audioCtx = null;
   function ensureAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
 
-  function playToneSequence(freqs, dur = 0.1, type = "sine", gainVal = 0.06) {
+  function playToneSequence(freqs, dur, type, gainVal) {
     try {
       ensureAudio();
       const now = audioCtx.currentTime;
@@ -233,53 +173,39 @@
         env.gain.linearRampToValueAtTime(1.0, start + 0.02);
         env.gain.linearRampToValueAtTime(0.0, end - 0.02);
 
-        o.connect(env);
-        env.connect(g);
-
-        o.start(start);
-        o.stop(end);
+        o.connect(env); env.connect(g);
+        o.start(start); o.stop(end);
       });
     } catch {}
   }
 
-  function soundCorrect() { playToneSequence([784, 988, 1175], 0.09, "sine", 0.07); }
-  function soundWrong()   { playToneSequence([220, 196, 174], 0.11, "sawtooth", 0.06); }
+  const soundCorrect = () => playToneSequence([784, 988, 1175], 0.09, "sine", 0.07);
+  const soundWrong   = () => playToneSequence([220, 196, 174], 0.11, "sawtooth", 0.06);
 
-  // ----------------------------
-  // Confetti
-  // ----------------------------
-  function randChoice(arr) { return arr[(Math.random() * arr.length) | 0]; }
-  function confettiColor() {
-    return randChoice(["#ff5050", "#ffbe28", "#32c878", "#50a0ff", "#be8cff", "#ff78dc"]);
-  }
+  // ============================================================
+  // CONFETTI
+  // ============================================================
+  const confettiColors = ["#ff5050", "#ffbe28", "#32c878", "#50a0ff", "#be8cff", "#ff78dc"];
+  const randChoice = arr => arr[(Math.random() * arr.length) | 0];
 
   class ConfettiParticle {
     constructor(x, y) {
-      this.x = x;
-      this.y = y;
+      this.x = x; this.y = y;
       const angle = (Math.random() * Math.PI * 2) - Math.PI;
       const speed = 2.5 + Math.random() * 5.5;
       this.vx = Math.cos(angle) * speed;
       this.vy = Math.sin(angle) * speed - (2.0 + Math.random() * 4.0);
       this.size = 3 + ((Math.random() * 5) | 0);
-      this.color = confettiColor();
+      this.color = randChoice(confettiColors);
       this.life = 40 + ((Math.random() * 45) | 0);
     }
-    update() {
-      this.vy += 0.25;
-      this.x += this.vx;
-      this.y += this.vy;
-      this.life -= 1;
-    }
-    draw(ctx) {
-      ctx.fillStyle = this.color;
-      ctx.fillRect(this.x | 0, this.y | 0, this.size, this.size);
-    }
+    update() { this.vy += 0.25; this.x += this.vx; this.y += this.vy; this.life -= 1; }
+    draw(ctx) { ctx.fillStyle = this.color; ctx.fillRect(this.x | 0, this.y | 0, this.size, this.size); }
   }
 
-  // ----------------------------
-  // Levels
-  // ----------------------------
+  // ============================================================
+  // LEVELS (same geometry as your pygame)
+  // ============================================================
   function makeLevel1() {
     const platforms = [
       rect(-200, 500, 1800, 60),
@@ -341,29 +267,29 @@
 
   const LEVELS = [makeLevel1(), makeLevel2(), makeLevel3(), makeLevel4()];
 
-  // ----------------------------
-  // Input
-  // ----------------------------
+  // ============================================================
+  // INPUT
+  // ============================================================
   const keys = new Set();
   window.addEventListener("keydown", (e) => {
     keys.add(e.key.toLowerCase());
-    if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase())) e.preventDefault();
+    if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) e.preventDefault();
   }, { passive: false });
   window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
 
-  // ----------------------------
-  // Player
-  // ----------------------------
+  // ============================================================
+  // PLAYER
+  // ============================================================
   class Player {
     constructor(x, y) {
       this.rect = rect(x, y, PLAYER_W, PLAYER_H);
-      this.vx = 0;
-      this.vy = 0;
+      this.vx = 0; this.vy = 0;
       this.onGround = false;
       this.lastOnGroundMs = 0;
       this.jumpBufferUntil = 0;
       this.jumpHeld = false;
     }
+
     requestJump(nowMs) {
       this.jumpBufferUntil = nowMs + JUMP_BUFFER_MS;
       this.jumpHeld = true;
@@ -373,20 +299,19 @@
     update(platforms, nowMs) {
       const left = keys.has("a") || keys.has("arrowleft");
       const right = keys.has("d") || keys.has("arrowright");
+      const jumpPressed = keys.has(" ") || keys.has("w") || keys.has("arrowup");
 
       this.vx = 0;
       if (left) this.vx = -MOVE_SPEED;
       if (right) this.vx = MOVE_SPEED;
 
-      // jump input
-      const jumpPressed = keys.has(" ") || keys.has("w") || keys.has("arrowup");
       if (jumpPressed && !this.jumpHeld) this.requestJump(nowMs);
       if (!jumpPressed && this.jumpHeld) this.releaseJump();
 
       this.vy += GRAVITY;
       this.vy = clamp(this.vy, -50, 25);
 
-      // x
+      // X resolve
       this.rect.x += this.vx;
       for (const p of platforms) {
         if (intersects(this.rect, p)) {
@@ -395,7 +320,7 @@
         }
       }
 
-      // y
+      // Y resolve
       this.rect.y += this.vy;
       this.onGround = false;
       for (const p of platforms) {
@@ -426,9 +351,9 @@
     }
   }
 
-  // ----------------------------
-  // Game
-  // ----------------------------
+  // ============================================================
+  // GAME
+  // ============================================================
   class Game {
     constructor(canvas) {
       this.canvas = canvas;
@@ -441,11 +366,12 @@
       this.totalCoins = 0;
       this.levelCoins = 0;
       this.requiredCoins = 0;
-      this.coinPopUntil = 0;
 
       this.portalCooldownUntil = 0;
+
       this.msg = "";
       this.msgUntil = 0;
+      this.coinPopUntil = 0;
 
       this.levelQuestions = [];
       this.qIndex = 0;
@@ -463,25 +389,15 @@
       this.minX = 0; this.maxX = 0;
       this.minY = 0; this.maxY = 0;
 
-      this.answerButtons = null;
-
       this.loadLevel(true);
 
       window.addEventListener("keydown", (e) => {
         const k = e.key.toLowerCase();
 
-        // Quit screen behavior
+        // ESC behavior: open quit modal during play
         if (k === "escape") {
-          if (this.mode === "play") {
-            this.mode = "quit";
-            return;
-          }
-          if (this.mode === "quit") {
-            // Esc again just resumes play (nice UX)
-            this.mode = "play";
-            return;
-          }
-          // For other modes, Esc returns to start
+          if (this.mode === "play") { this.mode = "quit"; return; }
+          if (this.mode === "quit") { this.mode = "play"; return; }
           this.mode = "start";
           return;
         }
@@ -492,8 +408,9 @@
         }
 
         if (this.mode === "quit") {
-          if (k === "enter") this.mode = "play";         // resume
-          if (k === "q") this.mode = "start";            // quit to start screen
+          if (k === "enter") this.mode = "play"; // resume
+          if (k === "q") this.mode = "start";    // quit to start
+          return;
         }
 
         if (this.mode === "question") {
@@ -516,7 +433,7 @@
       this.mode = "start";
     }
 
-    loadLevel(forceCamera = false) {
+    loadLevel(forceCamera) {
       const base = LEVELS[this.levelIndex];
       this.level = {
         platforms: base.platforms.map(p => ({...p})),
@@ -528,6 +445,7 @@
       };
 
       this.player = new Player(this.level.spawn[0], this.level.spawn[1]);
+
       this.levelCoins = 0;
       this.requiredCoins = this.level.required_coins;
 
@@ -539,13 +457,12 @@
       this.msg = "";
       this.msgUntil = 0;
 
-      const lvlNum = this.levelIndex + 1;
-      this.levelQuestions = (QUESTIONS_BY_LEVEL[lvlNum] || []).slice(0, QUESTIONS_PER_LEVEL);
+      const lvl = this.levelIndex + 1;
+      this.levelQuestions = (QUESTIONS_BY_LEVEL[lvl] || []).slice(0, QUESTIONS_PER_LEVEL);
       this.qIndex = 0;
       this.currentQuestion = null;
 
       this.confetti.length = 0;
-      this.answerButtons = null;
     }
 
     computeLevelBounds() {
@@ -556,7 +473,7 @@
       this.maxY = Math.max(...all.map(r => r.y + r.h)) + 200;
     }
 
-    updateCamera(force = false) {
+    updateCamera(force) {
       const targetX = (this.player.rect.x + this.player.rect.w/2) - WIDTH/2;
       const targetY = (this.player.rect.y + this.player.rect.h/2) - HEIGHT/2;
 
@@ -585,6 +502,7 @@
       const now = performance.now();
       const remaining = [];
       let gotAny = false;
+
       for (const c of this.level.coins) {
         if (intersects(this.player.rect, c)) {
           this.levelCoins += 1;
@@ -597,9 +515,7 @@
     }
 
     spawnConfetti() {
-      for (let i = 0; i < CONFETTI_COUNT; i++) {
-        this.confetti.push(new ConfettiParticle(WIDTH / 2, 130));
-      }
+      for (let i = 0; i < CONFETTI_COUNT; i++) this.confetti.push(new ConfettiParticle(WIDTH/2, 130));
     }
 
     beginFeedback(good, title, text, nextAction) {
@@ -611,20 +527,12 @@
       this.feedbackNext = nextAction;
       this.mode = "feedback";
 
-      if (good) {
-        this.spawnConfetti();
-        soundCorrect();
-      } else {
-        this.lives -= 1;
-        soundWrong();
-      }
+      if (good) { this.spawnConfetti(); soundCorrect(); }
+      else { this.lives -= 1; soundWrong(); }
     }
 
     startNextQuestion() {
-      if (this.qIndex >= this.levelQuestions.length) {
-        this.advanceLevel();
-        return;
-      }
+      if (this.qIndex >= this.levelQuestions.length) { this.advanceLevel(); return; }
       this.currentQuestion = this.levelQuestions[this.qIndex];
       this.mode = "question";
     }
@@ -632,6 +540,7 @@
     answerQuestion(choiceIndex) {
       const q = this.currentQuestion;
       const chosen = q.options[choiceIndex];
+
       if (chosen === q.answer) {
         this.beginFeedback(true, "Correct!", q.fact, "next_q");
       } else {
@@ -656,17 +565,86 @@
 
     advanceLevel() {
       this.levelIndex += 1;
-      if (this.levelIndex >= TOTAL_LEVELS) {
-        this.mode = "win";
-        return;
-      }
+      if (this.levelIndex >= TOTAL_LEVELS) { this.mode = "win"; return; }
       this.loadLevel(true);
       this.mode = "play";
     }
 
     // ----------------------------
-    // Drawing
+    // DRAWING
     // ----------------------------
+    drawPortalGlow(nowMs) {
+      const ctx = this.ctx;
+      const pr = this.worldToScreen(this.level.portal);
+      const cx = pr.x + pr.w / 2;
+      const cy = pr.y + pr.h / 2;
+
+      const pulse = 0.5 + 0.5 * Math.sin(nowMs * 0.004);
+      const glowPad = 16 + pulse * 10;
+
+      const grad = ctx.createRadialGradient(cx, cy, 8, cx, cy, Math.max(pr.w, pr.h) + glowPad);
+      grad.addColorStop(0, `rgba(190,140,255,${0.22 + pulse * 0.20})`);
+      grad.addColorStop(0.6, `rgba(150,60,220,${0.10 + pulse * 0.10})`);
+      grad.addColorStop(1, "rgba(150,60,220,0)");
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, pr.w/2 + glowPad, pr.h/2 + glowPad, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      // portal body
+      ctx.fillStyle = PORTAL_COLOR;
+      roundRect(ctx, pr.x, pr.y, pr.w, pr.h, 10);
+      ctx.fill();
+
+      // outline pulse
+      ctx.strokeStyle = `rgba(190,140,255,${0.35 + pulse * 0.35})`;
+      ctx.lineWidth = 3;
+      roundRect(ctx, pr.x - 5, pr.y - 5, pr.w + 10, pr.h + 10, 12);
+      ctx.stroke();
+    }
+
+    drawHUD(nowMs) {
+      const ctx = this.ctx;
+
+      // top bar
+      const barX = 14, barY = 12, barW = WIDTH - 28, barH = 66;
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = "#ffffff";
+      roundRect(ctx, barX, barY, barW, barH, 14);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.strokeStyle = "#e2e6ee";
+      ctx.lineWidth = 1;
+      roundRect(ctx, barX, barY, barW, barH, 14);
+      ctx.stroke();
+
+      // line 1
+      ctx.fillStyle = TEXT_COLOR;
+      ctx.font = (nowMs < this.coinPopUntil) ? "bold 22px Arial" : "bold 20px Arial";
+      ctx.fillText(
+        `${this.level.name}  •  Coins: ${this.levelCoins}/${this.requiredCoins}  •  Total: ${this.totalCoins}  •  Lives: ${this.lives}`,
+        barX + 18, barY + 30
+      );
+
+      // line 2
+      ctx.fillStyle = "#3c4652";
+      ctx.font = "14px Arial";
+      ctx.fillText(
+        `Move: A/D or ←/→   Jump: Space/W/↑   Touch portal for quiz   Esc: Quit`,
+        barX + 18, barY + 54
+      );
+
+      // messages
+      if (nowMs < this.msgUntil && this.msg) {
+        ctx.fillStyle = "#b42828";
+        ctx.font = "bold 22px Arial";
+        const w = ctx.measureText(this.msg).width;
+        ctx.fillText(this.msg, (WIDTH - w) / 2, barY + barH + 30);
+      }
+    }
+
     drawWorld(nowMs) {
       const ctx = this.ctx;
       ctx.fillStyle = BG_COLOR;
@@ -676,7 +654,8 @@
       ctx.fillStyle = PLATFORM_COLOR;
       for (const p of this.level.platforms) {
         const r = this.worldToScreen(p);
-        roundRect(ctx, r.x, r.y, r.w, r.h, 6, true, false);
+        roundRect(ctx, r.x, r.y, r.w, r.h, 6);
+        ctx.fill();
       }
 
       // coins
@@ -684,89 +663,20 @@
       for (const c of this.level.coins) {
         const r = this.worldToScreen(c);
         ctx.beginPath();
-        ctx.ellipse(r.x + r.w/2, r.y + r.h/2, r.w/2, r.h/2, 0, 0, Math.PI*2);
+        ctx.ellipse(r.x + r.w/2, r.y + r.h/2, r.w/2, r.h/2, 0, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // portal with glow animation
-      this.drawPortalWithGlow(nowMs);
+      // portal glow
+      this.drawPortalGlow(nowMs);
 
       // player
       const pl = this.worldToScreen(this.player.rect);
-      roundRect(ctx, pl.x, pl.y, pl.w, pl.h, 8, true, false, PLAYER_COLOR);
-
-      this.drawHud(nowMs);
-    }
-
-    drawPortalWithGlow(nowMs) {
-      const ctx = this.ctx;
-      const pr = this.worldToScreen(this.level.portal);
-
-      // pulse 0..1
-      const t = nowMs * 0.004;
-      const pulse = 0.5 + 0.5 * Math.sin(t);
-
-      // glow radius
-      const glowPad = 18 + pulse * 10;
-
-      // radial glow
-      const cx = pr.x + pr.w / 2;
-      const cy = pr.y + pr.h / 2;
-      const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(pr.w, pr.h) + glowPad);
-      g.addColorStop(0.0, `rgba(190,140,255,${0.28 + pulse * 0.18})`);
-      g.addColorStop(0.6, `rgba(150,60,220,${0.10 + pulse * 0.10})`);
-      g.addColorStop(1.0, "rgba(150,60,220,0)");
-
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, pr.w/2 + glowPad, pr.h/2 + glowPad, 0, 0, Math.PI*2);
+      ctx.fillStyle = PLAYER_COLOR;
+      roundRect(ctx, pl.x, pl.y, pl.w, pl.h, 8);
       ctx.fill();
 
-      // portal body
-      roundRect(ctx, pr.x, pr.y, pr.w, pr.h, 10, true, false, PORTAL_COLOR);
-
-      // animated outline
-      const outlineAlpha = 0.35 + pulse * 0.35;
-      roundRect(ctx, pr.x - 5, pr.y - 5, pr.w + 10, pr.h + 10, 12, false, true, `rgba(190,140,255,${outlineAlpha})`, 3);
-    }
-
-    // Better formatted HUD bar (fixes blue area)
-    drawHud(nowMs) {
-      const ctx = this.ctx;
-
-      // top bar background
-      const barX = 14, barY = 12, barW = WIDTH - 28, barH = 64;
-      ctx.save();
-      ctx.globalAlpha = 0.92;
-      roundRect(ctx, barX, barY, barW, barH, 14, true, true, "#ffffff", 1, "#e2e6ee");
-      ctx.restore();
-
-      // subtle shadow line under bar
-      ctx.save();
-      ctx.globalAlpha = 0.06;
-      ctx.fillStyle = "#000";
-      ctx.fillRect(barX + 6, barY + barH + 2, barW - 12, 3);
-      ctx.restore();
-
-      // line 1 (bigger)
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = (nowMs < this.coinPopUntil) ? "bold 22px Arial" : "bold 20px Arial";
-      const line1 = `${this.level.name}  •  Coins: ${this.levelCoins}/${this.requiredCoins}  •  Total: ${this.totalCoins}  •  Lives: ${this.lives}`;
-      ctx.fillText(line1, barX + 18, barY + 28);
-
-      // line 2 (smaller)
-      ctx.fillStyle = "#3c4652";
-      ctx.font = "14px Arial";
-      const line2 = `Move: A/D or ←/→   Jump: Space/W/↑   Touch portal for quiz   Esc: Quit`;
-      ctx.fillText(line2, barX + 18, barY + 52);
-
-      // temporary message (centered, not cramped)
-      if (nowMs < this.msgUntil && this.msg) {
-        ctx.fillStyle = "#b42828";
-        ctx.font = "bold 22px Arial";
-        const w = ctx.measureText(this.msg).width;
-        ctx.fillText(this.msg, (WIDTH - w) / 2, barY + barH + 30);
-      }
+      this.drawHUD(nowMs);
     }
 
     drawStart() {
@@ -789,10 +699,9 @@
         "• Answer with keys 1 / 2 / 3",
         `• You have ${MAX_LIVES} lives (wrong answers reduce lives)`,
         "",
-        "Press ENTER to start",
-        "Press ESC during play for Quit screen"
+        "Press ENTER to start"
       ];
-      let y = 175;
+      let y = 185;
       for (const line of lines) {
         const w = ctx.measureText(line).width;
         ctx.fillText(line, (WIDTH - w)/2, y);
@@ -804,17 +713,24 @@
       this.drawWorld(nowMs);
       const ctx = this.ctx;
 
-      // overlay card
       const card = rect(80, 90, WIDTH - 160, HEIGHT - 180);
-      roundRect(ctx, card.x, card.y, card.w, card.h, 18, true, true, "#ffffff", 2, "#d2d2d2");
+      ctx.fillStyle = "#ffffff";
+      roundRect(ctx, card.x, card.y, card.w, card.h, 18);
+      ctx.fill();
+      ctx.strokeStyle = "#d2d2d2";
+      ctx.lineWidth = 2;
+      roundRect(ctx, card.x, card.y, card.w, card.h, 18);
+      ctx.stroke();
 
       const q = this.currentQuestion;
       const lvl = this.levelIndex + 1;
 
       ctx.fillStyle = TEXT_COLOR;
       ctx.font = "bold 26px Arial";
-      const title = `Level ${lvl} Quiz — Q${this.qIndex + 1}/${this.levelQuestions.length} (Year: ${q.year})`;
-      ctx.fillText(title, card.x + 20, card.y + 42);
+      ctx.fillText(
+        `Level ${lvl} Quiz — Q${this.qIndex + 1}/${this.levelQuestions.length} (Year: ${q.year})`,
+        card.x + 20, card.y + 42
+      );
 
       ctx.font = "20px Arial";
       const qLines = wrapLines(ctx, q.question, card.w - 40);
@@ -826,8 +742,7 @@
 
       y += 10;
       for (let i = 0; i < q.options.length; i++) {
-        const opt = q.options[i];
-        ctx.fillText(`${i+1}) ${opt}`, card.x + 20, y);
+        ctx.fillText(`${i+1}) ${q.options[i]}`, card.x + 20, y);
         y += 30;
       }
 
@@ -874,10 +789,6 @@
       ctx.font = "20px Arial";
       const s = `Total Coins Collected: ${this.totalCoins}`;
       ctx.fillText(s, (WIDTH - ctx.measureText(s).width)/2, 260);
-
-      ctx.font = "16px Arial";
-      const h = "Refresh page to play again.";
-      ctx.fillText(h, (WIDTH - ctx.measureText(h).width)/2, 292);
     }
 
     drawGameOver() {
@@ -892,50 +803,55 @@
 
       ctx.fillStyle = TEXT_COLOR;
       ctx.font = "20px Arial";
-      const s = "You ran out of lives.";
-      ctx.fillText(s, (WIDTH - ctx.measureText(s).width)/2, 260);
+      ctx.fillText("You ran out of lives.", (WIDTH - ctx.measureText("You ran out of lives.").width)/2, 260);
 
       ctx.font = "16px Arial";
-      const h = "Press R to restart, or ESC to go to Start screen.";
-      ctx.fillText(h, (WIDTH - ctx.measureText(h).width)/2, 292);
+      ctx.fillText("Press R to restart, or ESC to go to Start screen.", (WIDTH - ctx.measureText("Press R to restart, or ESC to go to Start screen.").width)/2, 292);
     }
 
-    // ✅ Real Quit Screen
-    drawQuit() {
+    drawQuitModal() {
       const ctx = this.ctx;
 
-      // dim the current world view behind
       ctx.save();
       ctx.globalAlpha = 0.35;
       ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
       ctx.restore();
 
-      // modal card
       const cardW = 520, cardH = 240;
-      const cardX = (WIDTH - cardW) / 2;
-      const cardY = (HEIGHT - cardH) / 2;
+      const x = (WIDTH - cardW) / 2;
+      const y = (HEIGHT - cardH) / 2;
 
-      roundRect(ctx, cardX, cardY, cardW, cardH, 18, true, true, "#ffffff", 2, "#d2d2d2");
+      ctx.fillStyle = "#fff";
+      roundRect(ctx, x, y, cardW, cardH, 18);
+      ctx.fill();
+
+      ctx.strokeStyle = "#d2d2d2";
+      ctx.lineWidth = 2;
+      roundRect(ctx, x, y, cardW, cardH, 18);
+      ctx.stroke();
 
       ctx.fillStyle = TEXT_COLOR;
       ctx.font = "bold 34px Arial";
       const title = "Quit Game?";
-      ctx.fillText(title, cardX + (cardW - ctx.measureText(title).width)/2, cardY + 70);
+      ctx.fillText(title, x + (cardW - ctx.measureText(title).width)/2, y + 70);
 
       ctx.font = "18px Arial";
       ctx.fillStyle = "#3c4652";
-      const lineA = "Press ENTER to Resume";
-      const lineB = "Press Q to Quit to Start screen";
-      ctx.fillText(lineA, cardX + (cardW - ctx.measureText(lineA).width)/2, cardY + 125);
-      ctx.fillText(lineB, cardX + (cardW - ctx.measureText(lineB).width)/2, cardY + 155);
+      const a = "Press ENTER to Resume";
+      const b = "Press Q to Quit to Start screen";
+      ctx.fillText(a, x + (cardW - ctx.measureText(a).width)/2, y + 125);
+      ctx.fillText(b, x + (cardW - ctx.measureText(b).width)/2, y + 155);
 
       ctx.font = "14px Arial";
       ctx.fillStyle = "#7a8492";
       const note = "(Browser can’t close the tab automatically.)";
-      ctx.fillText(note, cardX + (cardW - ctx.measureText(note).width)/2, cardY + 190);
+      ctx.fillText(note, x + (cardW - ctx.measureText(note).width)/2, y + 190);
     }
 
+    // ----------------------------
+    // UPDATE + RENDER
+    // ----------------------------
     update(nowMs) {
       if (this.mode === "play") {
         this.player.update(this.level.platforms, nowMs);
@@ -951,10 +867,7 @@
       if (this.mode === "feedback" && nowMs >= this.feedbackUntil) {
         if (this.feedbackNext === "next_q") {
           if (this.lives <= 0) this.mode = "game_over";
-          else {
-            this.qIndex += 1;
-            this.startNextQuestion();
-          }
+          else { this.qIndex += 1; this.startNextQuestion(); }
         } else if (this.feedbackNext === "game_over") {
           this.mode = "game_over";
         }
@@ -969,36 +882,26 @@
       if (this.mode === "win") return this.drawWin();
       if (this.mode === "game_over") return this.drawGameOver();
       if (this.mode === "quit") {
-        // show paused world behind quit modal
         this.drawWorld(nowMs);
-        return this.drawQuit();
+        return this.drawQuitModal();
       }
     }
   }
 
-  function roundRect(ctx, x, y, w, h, r, fill, stroke, fillStyle=null, strokeW=1, strokeStyle="#000") {
-    const rr = Math.min(r, w/2, h/2);
-    ctx.beginPath();
-    ctx.moveTo(x + rr, y);
-    ctx.arcTo(x + w, y, x + w, y + h, rr);
-    ctx.arcTo(x + w, y + h, x, y + h, rr);
-    ctx.arcTo(x, y + h, x, y, rr);
-    ctx.arcTo(x, y, x + w, y, rr);
-    ctx.closePath();
-    if (fill) { if (fillStyle) ctx.fillStyle = fillStyle; ctx.fill(); }
-    if (stroke) { ctx.lineWidth = strokeW; ctx.strokeStyle = strokeStyle; ctx.stroke(); }
-  }
-
-  // ----------------------------
-  // Boot
-  // ----------------------------
+  // ============================================================
+  // BOOT
+  // ============================================================
   const canvas = document.getElementById("game");
   const game = new Game(canvas);
 
+  // First paint immediately (so never blank)
+  game.render(performance.now());
+
+  // Main loop
   let last = performance.now();
   function loop(now) {
     const dt = now - last;
-    if (dt > 50) last = now - 50;
+    if (dt > 50) last = now - 50; // clamp
 
     game.update(now);
     game.render(now);
@@ -1006,5 +909,6 @@
     last = now;
     requestAnimationFrame(loop);
   }
+
   requestAnimationFrame(loop);
 })();
