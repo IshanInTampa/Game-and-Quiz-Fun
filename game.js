@@ -3,9 +3,10 @@
   // CONFIG
   // ============================================================
   const WIDTH = 960, HEIGHT = 540;
-GRAVITY = 0.78          # slower fall = easier landings
-MOVE_SPEED = 6.6        # slightly faster horizontal control
-JUMP_SPEED = 22.0       # higher jump
+GRAVITY = 0.78          # slower fall = more time to travel horizontally
+MOVE_SPEED = 7.4        # bigger horizontal distance while airborne
+JUMP_SPEED = 21.0       # slightly higher jump for safety
+
 
   const PLAYER_W = 36, PLAYER_H = 48;
   const COIN_SIZE = 18;
@@ -26,9 +27,9 @@ JUMP_SPEED = 22.0       # higher jump
   const COIN_POP_MS = 350;
 
   // Controls feel
-  COYOTE_MS = 180         # more time to jump after leaving a platform
-JUMP_BUFFER_MS = 220    # jump press registers earlier
-JUMP_CUT_MULT = 0.80    # less harsh “short hop” so jumps feel more consistent
+COYOTE_MS = 180         # jump still works if you step off edge
+JUMP_BUFFER_MS = 220    # jump still works if pressed a bit early
+JUMP_CUT_MULT = 0.80    # less punishing if you release jump early
 
   // Confetti
   const CONFETTI_COUNT = 140;
@@ -911,4 +912,5 @@ JUMP_CUT_MULT = 0.80    # less harsh “short hop” so jumps feel more consiste
 
   requestAnimationFrame(loop);
 })();
+
 
