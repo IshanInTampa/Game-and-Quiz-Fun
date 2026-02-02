@@ -1,916 +1,823 @@
-(() => {
-  // ============================================================
-  // CONFIG
-  // ============================================================
-  const WIDTH = 960, HEIGHT = 540;
-GRAVITY = 0.78          # slower fall = more time to travel horizontally
-MOVE_SPEED = 7.4        # bigger horizontal distance while airborne
-JUMP_SPEED = 21.0       # slightly higher jump for safety
+import pygame
+import sys
+import math
+import random
+import os
+import wave
+import struct
 
+# ----------------------------
+# CONFIG
+# ----------------------------
+WIDTH, HEIGHT = 960, 540
+FPS = 60
 
-  const PLAYER_W = 36, PLAYER_H = 48;
-  const COIN_SIZE = 18;
-  const PORTAL_W = 42, PORTAL_H = 70;
+# Easier gaps + forgiving jumps (tuned)
+GRAVITY = 0.76
+MOVE_SPEED = 6.8        # ground speed (kept reasonable)
+AIR_SPEED_MULT = 1.30   # extra distance while airborne (gap helper)
+JUMP_SPEED = 22.3       # higher jump = easier clears
 
-  const BG_COLOR = "#f5f7fa";
-  const PLATFORM_COLOR = "#282d37";
-  const PLAYER_COLOR = "#1e90ff";
-  const COIN_COLOR = "#ffbe28";
-  const PORTAL_COLOR = "#963cdc";
-  const TEXT_COLOR = "#141923";
+PLAYER_W, PLAYER_H = 36, 48
+COIN_SIZE = 18
+PORTAL_W, PORTAL_H = 42, 70
 
-  const TOTAL_LEVELS = 4;
+BG_COLOR = (245, 247, 250)
+PLATFORM_COLOR = (40, 45, 55)
+PLAYER_COLOR = (30, 144, 255)
+COIN_COLOR = (255, 190, 40)
+PORTAL_COLOR = (150, 60, 220)
+TEXT_COLOR = (20, 25, 35)
+OVERLAY_BG = (255, 255, 255)
 
-  // UI timing
-  const MSG_MS = 1200;
-  const FEEDBACK_MS = 1100;
-  const COIN_POP_MS = 350;
+TOTAL_LEVELS = 4
 
-  // Controls feel
-COYOTE_MS = 180         # jump still works if you step off edge
-JUMP_BUFFER_MS = 220    # jump still works if pressed a bit early
-JUMP_CUT_MULT = 0.80    # less punishing if you release jump early
+# UI timing
+MSG_MS = 1200
+FEEDBACK_MS = 1100
+COIN_POP_MS = 350
 
-  // Confetti
-  const CONFETTI_COUNT = 140;
+# Controls feel (more forgiving)
+COYOTE_MS = 210
+JUMP_BUFFER_MS = 260
+JUMP_CUT_MULT = 0.84
 
-  // Lives
-  const MAX_LIVES = 5;
+# Confetti
+CONFETTI_COUNT = 140
 
-  // Questions per level
-  const QUESTIONS_PER_LEVEL = 4;
+# Lives
+MAX_LIVES = 5
 
-  // ============================================================
-  // QUESTIONS
-  // ============================================================
-  const QUESTIONS_BY_LEVEL = {
+# How many questions at end of each level
+QUESTIONS_PER_LEVEL = 4
+
+# ----------------------------
+# QUESTIONS (4 per level)
+# ----------------------------
+QUESTIONS_BY_LEVEL = {
     1: [
-      { year:"1964", question:"Which band helped spark 'Beatlemania' in the U.S. after appearing on The Ed Sullivan Show?",
-        options:["The Rolling Stones","The Beatles","The Kinks"], answer:"The Beatles",
-        fact:"The Beatles' Ed Sullivan appearance (1964) became a major pop culture moment." },
-      { year:"1969", question:"Which music festival became a famous symbol of 1960s youth culture and peace?",
-        options:["Altamont","Monterey Pop Festival","Woodstock"], answer:"Woodstock",
-        fact:"Woodstock (1969) is one of the most iconic music festivals ever." },
-      { year:"1968", question:"Which Beatles song was written as a message of encouragement?",
-        options:["Hey Jude","Good Vibrations","Light My Fire"], answer:"Hey Jude",
-        fact:"‘Hey Jude’ (1968) became one of The Beatles’ biggest worldwide hits." },
-      { year:"1964", question:"Which boxer won the heavyweight title in 1964 and later became known as Muhammad Ali?",
-        options:["Joe Frazier","Cassius Clay","George Foreman"], answer:"Cassius Clay",
-        fact:"Cassius Clay later changed his name to Muhammad Ali." },
+        {
+            "year": "1964",
+            "question": "Which band helped spark 'Beatlemania' in the U.S. after appearing on The Ed Sullivan Show?",
+            "options": ["The Rolling Stones", "The Beatles", "The Kinks"],
+            "answer": "The Beatles",
+            "fact": "The Beatles' Ed Sullivan appearance (1964) became a major pop culture moment.",
+        },
+        {
+            "year": "1969",
+            "question": "Which music festival became a famous symbol of 1960s youth culture and peace?",
+            "options": ["Altamont", "Monterey Pop Festival", "Woodstock"],
+            "answer": "Woodstock",
+            "fact": "Woodstock (1969) is one of the most iconic music festivals ever.",
+        },
+        {
+            "year": "1968",
+            "question": "Which Beatles song was written as a message of encouragement?",
+            "options": ["Hey Jude", "Good Vibrations", "Light My Fire"],
+            "answer": "Hey Jude",
+            "fact": "‘Hey Jude’ (1968) became one of The Beatles’ biggest worldwide hits.",
+        },
+        {
+            "year": "1964",
+            "question": "Which boxer won the heavyweight title in 1964 and later became known as Muhammad Ali?",
+            "options": ["Joe Frazier", "Cassius Clay", "George Foreman"],
+            "answer": "Cassius Clay",
+            "fact": "Cassius Clay later changed his name to Muhammad Ali.",
+        },
     ],
     2: [
-      { year:"1969", question:"What early computer network created in 1969 later evolved into the internet?",
-        options:["World Wide Web","Bluetooth","ARPANET"], answer:"ARPANET",
-        fact:"ARPANET connected early computers and became a foundation for the internet." },
-      { year:"1960s", question:"Which invention replaced vacuum tubes and helped computers become smaller and faster?",
-        options:["Typewriters","Transistors","Candles"], answer:"Transistors",
-        fact:"Transistors were smaller and more efficient than vacuum tubes." },
-      { year:"1968", question:"Who demonstrated early versions of the computer mouse and modern-style computing in 1968?",
-        options:["Douglas Engelbart","Thomas Edison","Henry Ford"], answer:"Douglas Engelbart",
-        fact:"Engelbart’s 1968 demo showcased the mouse and new ways to interact with computers." },
-      { year:"1971", question:"Which invention introduced in 1971 is often considered the first widely used microprocessor?",
-        options:["CD player","GPS receiver","Intel 4004"], answer:"Intel 4004",
-        fact:"The Intel 4004 helped start the microprocessor revolution in computing." },
+        {
+            "year": "1969",
+            "question": "What early computer network created in 1969 later evolved into the internet?",
+            "options": ["World Wide Web", "Bluetooth", "ARPANET"],
+            "answer": "ARPANET",
+            "fact": "ARPANET connected early computers and became a foundation for the internet.",
+        },
+        {
+            "year": "1960s",
+            "question": "Which invention replaced vacuum tubes and helped computers become smaller and faster?",
+            "options": ["Typewriters", "Transistors", "Candles"],
+            "answer": "Transistors",
+            "fact": "Transistors were smaller and more efficient than vacuum tubes.",
+        },
+        {
+            "year": "1968",
+            "question": "Who demonstrated early versions of the computer mouse and modern-style computing in 1968?",
+            "options": ["Douglas Engelbart", "Thomas Edison", "Henry Ford"],
+            "answer": "Douglas Engelbart",
+            "fact": "Engelbart’s 1968 demo showcased the mouse and new ways to interact with computers.",
+        },
+        {
+            "year": "1971",
+            "question": "Which invention introduced in 1971 is often considered the first widely used microprocessor?",
+            "options": ["CD player", "GPS receiver", "Intel 4004"],
+            "answer": "Intel 4004",
+            "fact": "The Intel 4004 helped start the microprocessor revolution in computing.",
+        },
     ],
     3: [
-      { year:"1961", question:"Which technology made the first human spaceflight possible?",
-        options:["Rocket propulsion","Jet skis","Steam engines"], answer:"Rocket propulsion",
-        fact:"Powerful rockets made it possible to launch spacecraft into orbit." },
-      { year:"1969", question:"Which mission first landed humans on the Moon?",
-        options:["Apollo 8","Apollo 11","Apollo 13"], answer:"Apollo 11",
-        fact:"Apollo 11 landed astronauts on the Moon in July 1969." },
-      { year:"1960s", question:"Which technology allowed phone calls and TV signals to be sent long distances around the world more easily?",
-        options:["Horse-drawn wagons","Communication satellites","Smoke signals"], answer:"Communication satellites",
-        fact:"Satellites enabled fast long-distance communication and live international broadcasts." },
-      { year:"1960s", question:"Which medical technology helped doctors perform complex heart surgeries by circulating blood during operations?",
-        options:["Heart-lung machine","Thermometer","Stethoscope"], answer:"Heart-lung machine",
-        fact:"Heart-lung machines made many open-heart surgeries possible." },
+        {
+            "year": "1961",
+            "question": "Which technology made the first human spaceflight possible?",
+            "options": ["Rocket propulsion", "Jet skis", "Steam engines"],
+            "answer": "Rocket propulsion",
+            "fact": "Powerful rockets made it possible to launch spacecraft into orbit.",
+        },
+        {
+            "year": "1969",
+            "question": "Which mission first landed humans on the Moon?",
+            "options": ["Apollo 8", "Apollo 11", "Apollo 13"],
+            "answer": "Apollo 11",
+            "fact": "Apollo 11 landed astronauts on the Moon in July 1969.",
+        },
+        {
+            "year": "1960s",
+            "question": "Which technology allowed phone calls and TV signals to be sent long distances around the world more easily?",
+            "options": ["Horse-drawn wagons", "Communication satellites", "Smoke signals"],
+            "answer": "Communication satellites",
+            "fact": "Satellites enabled fast long-distance communication and live international broadcasts.",
+        },
+        {
+            "year": "1960s",
+            "question": "Which medical technology helped doctors perform complex heart surgeries by circulating blood during operations?",
+            "options": ["Heart-lung machine", "Thermometer", "Stethoscope"],
+            "answer": "Heart-lung machine",
+            "fact": "Heart-lung machines made many open-heart surgeries possible.",
+        },
     ],
     4: [
-      { year:"1961", question:"Which dance became a huge early-1960s craze?",
-        options:["Disco","Breakdancing","The Twist"], answer:"The Twist",
-        fact:"The Twist became a major dance craze in the early 1960s." },
-      { year:"1960s", question:"Which animated TV family lived in the Stone Age but acted like a modern family?",
-        options:["The Jetsons","Scooby-Doo","The Flintstones"], answer:"The Flintstones",
-        fact:"The Flintstones became a classic animated show of the era." },
-      { year:"1966", question:"Which TV/music group starred in a show about a made-for-TV band?",
-        options:["The Beach Boys","The Monkees","The Doors"], answer:"The Monkees",
-        fact:"The Monkees were created for TV and became a real hit music group." },
-      { year:"early 1970s", question:"Which genre grew rapidly from the late 1960s into the 1970s and dominated youth music?",
-        options:["Rock","Hip-hop","EDM"], answer:"Rock",
-        fact:"Rock music expanded into many styles and became a major force in the 1970s." },
+        {
+            "year": "1961",
+            "question": "Which dance became a huge early-1960s craze?",
+            "options": ["Disco", "Breakdancing", "The Twist"],
+            "answer": "The Twist",
+            "fact": "The Twist became a major dance craze in the early 1960s.",
+        },
+        {
+            "year": "1960s",
+            "question": "Which animated TV family lived in the Stone Age but acted like a modern family?",
+            "options": ["The Jetsons", "Scooby-Doo", "The Flintstones"],
+            "answer": "The Flintstones",
+            "fact": "The Flintstones became a classic animated show of the era.",
+        },
+        {
+            "year": "1966",
+            "question": "Which TV/music group starred in a show about a made-for-TV band?",
+            "options": ["The Beach Boys", "The Monkees", "The Doors"],
+            "answer": "The Monkees",
+            "fact": "The Monkees were created for TV and became a real hit music group.",
+        },
+        {
+            "year": "early 1970s",
+            "question": "Which genre grew rapidly from the late 1960s into the 1970s and dominated youth music?",
+            "options": ["Rock", "Hip-hop", "EDM"],
+            "answer": "Rock",
+            "fact": "Rock music expanded into many styles and became a major force in the 1970s.",
+        },
     ],
-  };
+}
 
-  // ============================================================
-  // HELPERS
-  // ============================================================
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  const rect = (x, y, w, h) => ({ x, y, w, h });
+# ----------------------------
+# HELPERS
+# ----------------------------
+def clamp(v, lo, hi):
+    return max(lo, min(hi, v))
 
-  function intersects(a, b) {
-    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-  }
+def wrap_lines(font, text, max_width):
+    words = text.split()
+    lines = []
+    cur = ""
+    for w in words:
+        test = (cur + " " + w).strip()
+        if font.size(test)[0] <= max_width:
+            cur = test
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+    if cur:
+        lines.append(cur)
+    return lines
 
-  function wrapLines(ctx, text, maxWidth) {
-    const words = text.split(" ");
-    const lines = [];
-    let cur = "";
-    for (const w of words) {
-      const test = (cur ? cur + " " : "") + w;
-      if (ctx.measureText(test).width <= maxWidth) cur = test;
-      else { if (cur) lines.push(cur); cur = w; }
-    }
-    if (cur) lines.push(cur);
-    return lines;
-  }
+def coin_on_platform(p: pygame.Rect) -> pygame.Rect:
+    return pygame.Rect(
+        p.x + p.w // 2 - COIN_SIZE // 2,
+        p.y - COIN_SIZE - 2,
+        COIN_SIZE,
+        COIN_SIZE
+    )
 
-  function roundRect(ctx, x, y, w, h, r) {
-    const rr = Math.min(r, w / 2, h / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + rr, y);
-    ctx.arcTo(x + w, y, x + w, y + h, rr);
-    ctx.arcTo(x + w, y + h, x, y + h, rr);
-    ctx.arcTo(x, y + h, x, y, rr);
-    ctx.arcTo(x, y, x + w, y, rr);
-    ctx.closePath();
-  }
+# ----------------------------
+# SIMPLE SOUND GENERATION
+# ----------------------------
+def ensure_wav(filename, tones, duration=0.12, sample_rate=44100, volume=0.40):
+    if os.path.exists(filename):
+        return
+    with wave.open(filename, "w") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sample_rate)
+        chunk_len = int(sample_rate * duration)
+        for f in tones:
+            for n in range(chunk_len):
+                t = n / sample_rate
+                env = 1.0
+                fade = 0.02
+                if t < fade:
+                    env = t / fade
+                elif t > duration - fade:
+                    env = max(0.0, (duration - t) / fade)
+                sample = volume * env * math.sin(2 * math.pi * f * t)
+                wf.writeframesraw(struct.pack("<h", int(sample * 32767)))
 
-  function coinOnPlatform(p) {
-    return rect(
-      p.x + Math.floor(p.w / 2) - Math.floor(COIN_SIZE / 2),
-      p.y - COIN_SIZE - 2,
-      COIN_SIZE, COIN_SIZE
-    );
-  }
+def safe_load_sound(path):
+    try:
+        return pygame.mixer.Sound(path)
+    except Exception:
+        return None
 
-  // ============================================================
-  // AUDIO (WebAudio) — safe + simple
-  // ============================================================
-  let audioCtx = null;
-  function ensureAudio() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
+# ----------------------------
+# CONFETTI
+# ----------------------------
+def random_confetti_color():
+    return random.choice([
+        (255, 80, 80),
+        (255, 190, 40),
+        (50, 200, 120),
+        (80, 160, 255),
+        (190, 140, 255),
+        (255, 120, 220),
+    ])
 
-  function playToneSequence(freqs, dur, type, gainVal) {
-    try {
-      ensureAudio();
-      const now = audioCtx.currentTime;
-      const g = audioCtx.createGain();
-      g.gain.value = gainVal;
-      g.connect(audioCtx.destination);
+class ConfettiParticle:
+    def __init__(self, x, y):
+        self.x = float(x)
+        self.y = float(y)
+        angle = random.uniform(-math.pi, math.pi)
+        speed = random.uniform(2.5, 8.0)
+        self.vx = math.cos(angle) * speed
+        self.vy = math.sin(angle) * speed - random.uniform(2.0, 6.0)
+        self.size = random.randint(3, 7)
+        self.color = random_confetti_color()
+        self.life = random.randint(40, 85)
 
-      freqs.forEach((f, i) => {
-        const o = audioCtx.createOscillator();
-        o.type = type;
-        o.frequency.value = f;
+    def update(self):
+        self.vy += 0.25
+        self.x += self.vx
+        self.y += self.vy
+        self.life -= 1
 
-        const start = now + i * dur;
-        const end = start + dur;
+    def draw(self, surf):
+        pygame.draw.rect(surf, self.color, pygame.Rect(int(self.x), int(self.y), self.size, self.size))
 
-        const env = audioCtx.createGain();
-        env.gain.setValueAtTime(0.0, start);
-        env.gain.linearRampToValueAtTime(1.0, start + 0.02);
-        env.gain.linearRampToValueAtTime(0.0, end - 0.02);
+# ----------------------------
+# LEVELS (1–4)
+# ----------------------------
+def make_level_1():
+    platforms = [
+        pygame.Rect(-200, 500, 1800, 60),
+        pygame.Rect(120, 420, 220, 20),
+        pygame.Rect(420, 360, 240, 20),
+        pygame.Rect(740, 300, 220, 20),
+        pygame.Rect(560, 240, 180, 20),
+        pygame.Rect(300, 190, 200, 20),
+        pygame.Rect(80, 140, 180, 20),
+    ]
+    coins = [coin_on_platform(p) for p in platforms[1:]]
+    return {"platforms": platforms, "coins": coins, "portal": pygame.Rect(40, 60, PORTAL_W, PORTAL_H),
+            "spawn": (40, 440), "name": "Level 1", "required_coins": len(coins)}
 
-        o.connect(env); env.connect(g);
-        o.start(start); o.stop(end);
-      });
-    } catch {}
-  }
+def make_level_2():
+    platforms = [
+        pygame.Rect(-200, 520, 2000, 60),
+        pygame.Rect(140, 460, 200, 20),
+        pygame.Rect(420, 410, 220, 20),
+        pygame.Rect(700, 360, 240, 20),
+        pygame.Rect(420, 310, 220, 20),
+        pygame.Rect(140, 260, 200, 20),
+        pygame.Rect(420, 210, 220, 20),
+    ]
+    coins = [coin_on_platform(p) for p in platforms[1:]]
+    return {"platforms": platforms, "coins": coins, "portal": pygame.Rect(720, 160, PORTAL_W, PORTAL_H),
+            "spawn": (40, 460), "name": "Level 2", "required_coins": len(coins)}
 
-  const soundCorrect = () => playToneSequence([784, 988, 1175], 0.09, "sine", 0.07);
-  const soundWrong   = () => playToneSequence([220, 196, 174], 0.11, "sawtooth", 0.06);
+def make_level_3():
+    platforms = [
+        pygame.Rect(-400, 560, 2400, 70),
+        pygame.Rect(80, 500, 420, 22),
+        pygame.Rect(560, 450, 420, 22),
+        pygame.Rect(140, 400, 420, 22),
+        pygame.Rect(620, 350, 420, 22),
+        pygame.Rect(200, 300, 420, 22),
+        pygame.Rect(680, 250, 420, 22),
+        pygame.Rect(260, 200, 420, 22),
+        pygame.Rect(740, 150, 420, 22),
+        pygame.Rect(320, 100, 420, 22),
+    ]
+    coins = [coin_on_platform(p) for p in platforms[1:]]
+    return {"platforms": platforms, "coins": coins, "portal": pygame.Rect(780, 40, PORTAL_W, PORTAL_H),
+            "spawn": (40, 500), "name": "Level 3", "required_coins": len(coins)}
 
-  // ============================================================
-  // CONFETTI
-  // ============================================================
-  const confettiColors = ["#ff5050", "#ffbe28", "#32c878", "#50a0ff", "#be8cff", "#ff78dc"];
-  const randChoice = arr => arr[(Math.random() * arr.length) | 0];
+def make_level_4():
+    platforms = [
+        pygame.Rect(-300, 560, 2200, 70),
+        pygame.Rect(80, 500, 260, 20),
+        pygame.Rect(400, 420, 260, 20),
+        pygame.Rect(900, 340, 260, 20),
+        pygame.Rect(260, 260, 260, 20),
+        pygame.Rect(1000, 180, 260, 20),
+        pygame.Rect(420, 100, 260, 20),
+    ]
+    coins = [coin_on_platform(p) for p in platforms[1:]]
+    return {"platforms": platforms, "coins": coins, "portal": pygame.Rect(480, 40, PORTAL_W, PORTAL_H),
+            "spawn": (40, 500), "name": "Level 4", "required_coins": len(coins)}
 
-  class ConfettiParticle {
-    constructor(x, y) {
-      this.x = x; this.y = y;
-      const angle = (Math.random() * Math.PI * 2) - Math.PI;
-      const speed = 2.5 + Math.random() * 5.5;
-      this.vx = Math.cos(angle) * speed;
-      this.vy = Math.sin(angle) * speed - (2.0 + Math.random() * 4.0);
-      this.size = 3 + ((Math.random() * 5) | 0);
-      this.color = randChoice(confettiColors);
-      this.life = 40 + ((Math.random() * 45) | 0);
-    }
-    update() { this.vy += 0.25; this.x += this.vx; this.y += this.vy; this.life -= 1; }
-    draw(ctx) { ctx.fillStyle = this.color; ctx.fillRect(this.x | 0, this.y | 0, this.size, this.size); }
-  }
+LEVELS = [make_level_1(), make_level_2(), make_level_3(), make_level_4()]
 
-  // ============================================================
-  // LEVELS (same geometry as your pygame)
-  // ============================================================
-  function makeLevel1() {
-    const platforms = [
-      rect(-200, 500, 1800, 60),
-      rect(120, 420, 220, 20),
-      rect(420, 360, 240, 20),
-      rect(740, 300, 220, 20),
-      rect(560, 240, 180, 20),
-      rect(300, 190, 200, 20),
-      rect(80, 140, 180, 20),
-    ];
-    const coins = platforms.slice(1).map(coinOnPlatform);
-    return { platforms, coins, portal: rect(40, 60, PORTAL_W, PORTAL_H), spawn: [40, 440], name: "Level 1", required_coins: coins.length };
-  }
+# ----------------------------
+# PLAYER
+# ----------------------------
+class Player:
+    def __init__(self, x, y):
+        self.rect = pygame.Rect(x, y, PLAYER_W, PLAYER_H)
+        self.vx = 0.0
+        self.vy = 0.0
+        self.on_ground = False
+        self.last_on_ground_ms = 0
+        self.jump_buffer_until_ms = 0
+        self.jump_held = False
 
-  function makeLevel2() {
-    const platforms = [
-      rect(-200, 520, 2000, 60),
-      rect(140, 460, 200, 20),
-      rect(420, 410, 220, 20),
-      rect(700, 360, 240, 20),
-      rect(420, 310, 220, 20),
-      rect(140, 260, 200, 20),
-      rect(420, 210, 220, 20),
-    ];
-    const coins = platforms.slice(1).map(coinOnPlatform);
-    return { platforms, coins, portal: rect(720, 160, PORTAL_W, PORTAL_H), spawn: [40, 460], name: "Level 2", required_coins: coins.length };
-  }
+    def request_jump(self, now_ms):
+        self.jump_buffer_until_ms = now_ms + JUMP_BUFFER_MS
+        self.jump_held = True
 
-  function makeLevel3() {
-    const platforms = [
-      rect(-400, 560, 2400, 70),
-      rect(80, 500, 420, 22),
-      rect(560, 450, 420, 22),
-      rect(140, 400, 420, 22),
-      rect(620, 350, 420, 22),
-      rect(200, 300, 420, 22),
-      rect(680, 250, 420, 22),
-      rect(260, 200, 420, 22),
-      rect(740, 150, 420, 22),
-      rect(320, 100, 420, 22),
-    ];
-    const coins = platforms.slice(1).map(coinOnPlatform);
-    return { platforms, coins, portal: rect(780, 40, PORTAL_W, PORTAL_H), spawn: [40, 500], name: "Level 3", required_coins: coins.length };
-  }
+    def release_jump(self):
+        self.jump_held = False
 
-  function makeLevel4() {
-    const platforms = [
-      rect(-300, 560, 2200, 70),
-      rect(80, 500, 260, 20),
-      rect(400, 420, 260, 20),
-      rect(900, 340, 260, 20),
-      rect(260, 260, 260, 20),
-      rect(1000, 180, 260, 20),
-      rect(420, 100, 260, 20),
-    ];
-    const coins = platforms.slice(1).map(coinOnPlatform);
-    return { platforms, coins, portal: rect(480, 40, PORTAL_W, PORTAL_H), spawn: [40, 500], name: "Level 4", required_coins: coins.length };
-  }
+    def update(self, platforms, now_ms):
+        keys = pygame.key.get_pressed()
 
-  const LEVELS = [makeLevel1(), makeLevel2(), makeLevel3(), makeLevel4()];
+        # ✅ Air speed boost (helps clear gaps)
+        speed = MOVE_SPEED * (1.0 if self.on_ground else AIR_SPEED_MULT)
 
-  // ============================================================
-  // INPUT
-  // ============================================================
-  const keys = new Set();
-  window.addEventListener("keydown", (e) => {
-    keys.add(e.key.toLowerCase());
-    if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) e.preventDefault();
-  }, { passive: false });
-  window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
+        self.vx = 0.0
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            self.vx = -speed
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            self.vx = speed
 
-  // ============================================================
-  // PLAYER
-  // ============================================================
-  class Player {
-    constructor(x, y) {
-      this.rect = rect(x, y, PLAYER_W, PLAYER_H);
-      this.vx = 0; this.vy = 0;
-      this.onGround = false;
-      this.lastOnGroundMs = 0;
-      this.jumpBufferUntil = 0;
-      this.jumpHeld = false;
-    }
+        self.vy += GRAVITY
+        self.vy = clamp(self.vy, -50, 25)
 
-    requestJump(nowMs) {
-      this.jumpBufferUntil = nowMs + JUMP_BUFFER_MS;
-      this.jumpHeld = true;
-    }
-    releaseJump() { this.jumpHeld = false; }
+        self.rect.x += int(self.vx)
+        for p in platforms:
+            if self.rect.colliderect(p):
+                if self.vx > 0:
+                    self.rect.right = p.left
+                elif self.vx < 0:
+                    self.rect.left = p.right
 
-    update(platforms, nowMs) {
-      const left = keys.has("a") || keys.has("arrowleft");
-      const right = keys.has("d") || keys.has("arrowright");
-      const jumpPressed = keys.has(" ") || keys.has("w") || keys.has("arrowup");
+        self.rect.y += int(self.vy)
+        self.on_ground = False
+        for p in platforms:
+            if self.rect.colliderect(p):
+                if self.vy > 0:
+                    self.rect.bottom = p.top
+                    self.vy = 0
+                    self.on_ground = True
+                    self.last_on_ground_ms = now_ms
+                elif self.vy < 0:
+                    self.rect.top = p.bottom
+                    self.vy = 0
 
-      this.vx = 0;
-      if (left) this.vx = -MOVE_SPEED;
-      if (right) this.vx = MOVE_SPEED;
+        can_coyote = (now_ms - self.last_on_ground_ms) <= COYOTE_MS
+        has_buffered_jump = now_ms <= self.jump_buffer_until_ms
 
-      if (jumpPressed && !this.jumpHeld) this.requestJump(nowMs);
-      if (!jumpPressed && this.jumpHeld) this.releaseJump();
+        if has_buffered_jump and (self.on_ground or can_coyote):
+            self.vy = -JUMP_SPEED
+            self.on_ground = False
+            self.jump_buffer_until_ms = 0
+            self.last_on_ground_ms = 0
 
-      this.vy += GRAVITY;
-      this.vy = clamp(this.vy, -50, 25);
+        if (not self.jump_held) and self.vy < 0:
+            self.vy *= JUMP_CUT_MULT
 
-      // X resolve
-      this.rect.x += this.vx;
-      for (const p of platforms) {
-        if (intersects(this.rect, p)) {
-          if (this.vx > 0) this.rect.x = p.x - this.rect.w;
-          else if (this.vx < 0) this.rect.x = p.x + p.w;
+# ----------------------------
+# GAME
+# ----------------------------
+class Game:
+    def __init__(self):
+        pygame.init()
+
+        self.lives = MAX_LIVES
+
+        self.snd_correct = None
+        self.snd_wrong = None
+        try:
+            pygame.mixer.init()
+            ensure_wav("correct.wav", tones=[784, 988, 1175], duration=0.10, volume=0.35)
+            ensure_wav("wrong.wav", tones=[220, 196, 174], duration=0.14, volume=0.45)
+            self.snd_correct = safe_load_sound("correct.wav")
+            self.snd_wrong = safe_load_sound("wrong.wav")
+        except Exception:
+            self.snd_correct = None
+            self.snd_wrong = None
+
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Time Travel Platformer + Quiz (4 Levels)")
+        self.clock = pygame.time.Clock()
+
+        self.font = pygame.font.SysFont("arial", 20)
+        self.big = pygame.font.SysFont("arial", 34, bold=True)
+        self.huge = pygame.font.SysFont("arial", 42, bold=True)
+
+        self.mode = "start"  # start, play, question, feedback, win, game_over
+        self.level_index = 0
+
+        self.total_coins = 0
+        self.level_coins = 0
+        self.required_coins = 0
+        self.coin_pop_until = 0
+
+        self.portal_cooldown_until = 0
+        self.msg = ""
+        self.msg_until = 0
+
+        self.level_questions = []
+        self.q_index = 0
+        self.current_question = None
+
+        self.feedback_title = ""
+        self.feedback_text = ""
+        self.feedback_good = False
+        self.feedback_until = 0
+        self.feedback_next = None
+
+        self.confetti = []
+
+        self.cam_x = 0
+        self.cam_y = 0
+        self.min_x = 0
+        self.max_x = 0
+        self.min_y = 0
+        self.max_y = 0
+
+        self.load_level(force_camera=True)
+
+    def reset_whole_game(self):
+        self.lives = MAX_LIVES
+        self.level_index = 0
+        self.total_coins = 0
+        self.load_level(force_camera=True)
+        self.mode = "start"
+
+    def load_level(self, force_camera=False):
+        base = LEVELS[self.level_index]
+        self.level = {
+            "platforms": list(base["platforms"]),
+            "coins": list(base["coins"]),
+            "portal": base["portal"].copy(),
+            "spawn": base["spawn"],
+            "name": base["name"],
+            "required_coins": base["required_coins"],
         }
-      }
-
-      // Y resolve
-      this.rect.y += this.vy;
-      this.onGround = false;
-      for (const p of platforms) {
-        if (intersects(this.rect, p)) {
-          if (this.vy > 0) {
-            this.rect.y = p.y - this.rect.h;
-            this.vy = 0;
-            this.onGround = true;
-            this.lastOnGroundMs = nowMs;
-          } else if (this.vy < 0) {
-            this.rect.y = p.y + p.h;
-            this.vy = 0;
-          }
-        }
-      }
-
-      const canCoyote = (nowMs - this.lastOnGroundMs) <= COYOTE_MS;
-      const hasBuffered = nowMs <= this.jumpBufferUntil;
-
-      if (hasBuffered && (this.onGround || canCoyote)) {
-        this.vy = -JUMP_SPEED;
-        this.onGround = false;
-        this.jumpBufferUntil = 0;
-        this.lastOnGroundMs = 0;
-      }
-
-      if (!this.jumpHeld && this.vy < 0) this.vy *= JUMP_CUT_MULT;
-    }
-  }
-
-  // ============================================================
-  // GAME
-  // ============================================================
-  class Game {
-    constructor(canvas) {
-      this.canvas = canvas;
-      this.ctx = canvas.getContext("2d");
-
-      this.lives = MAX_LIVES;
-      this.mode = "start"; // start, play, question, feedback, win, game_over, quit
-
-      this.levelIndex = 0;
-      this.totalCoins = 0;
-      this.levelCoins = 0;
-      this.requiredCoins = 0;
-
-      this.portalCooldownUntil = 0;
-
-      this.msg = "";
-      this.msgUntil = 0;
-      this.coinPopUntil = 0;
-
-      this.levelQuestions = [];
-      this.qIndex = 0;
-      this.currentQuestion = null;
-
-      this.feedbackTitle = "";
-      this.feedbackText = "";
-      this.feedbackGood = false;
-      this.feedbackUntil = 0;
-      this.feedbackNext = null;
-
-      this.confetti = [];
-
-      this.camX = 0; this.camY = 0;
-      this.minX = 0; this.maxX = 0;
-      this.minY = 0; this.maxY = 0;
-
-      this.loadLevel(true);
-
-      window.addEventListener("keydown", (e) => {
-        const k = e.key.toLowerCase();
-
-        // ESC behavior: open quit modal during play
-        if (k === "escape") {
-          if (this.mode === "play") { this.mode = "quit"; return; }
-          if (this.mode === "quit") { this.mode = "play"; return; }
-          this.mode = "start";
-          return;
-        }
-
-        if (this.mode === "start" && k === "enter") {
-          ensureAudio();
-          this.mode = "play";
-        }
-
-        if (this.mode === "quit") {
-          if (k === "enter") this.mode = "play"; // resume
-          if (k === "q") this.mode = "start";    // quit to start
-          return;
-        }
-
-        if (this.mode === "question") {
-          if (k === "1") this.answerQuestion(0);
-          if (k === "2") this.answerQuestion(1);
-          if (k === "3") this.answerQuestion(2);
-        }
-
-        if (this.mode === "game_over" && k === "r") {
-          this.resetWholeGame();
-        }
-      });
-    }
-
-    resetWholeGame() {
-      this.lives = MAX_LIVES;
-      this.levelIndex = 0;
-      this.totalCoins = 0;
-      this.loadLevel(true);
-      this.mode = "start";
-    }
-
-    loadLevel(forceCamera) {
-      const base = LEVELS[this.levelIndex];
-      this.level = {
-        platforms: base.platforms.map(p => ({...p})),
-        coins: base.coins.map(c => ({...c})),
-        portal: {...base.portal},
-        spawn: [...base.spawn],
-        name: base.name,
-        required_coins: base.required_coins
-      };
-
-      this.player = new Player(this.level.spawn[0], this.level.spawn[1]);
-
-      this.levelCoins = 0;
-      this.requiredCoins = this.level.required_coins;
-
-      this.computeLevelBounds();
-      this.updateCamera(forceCamera);
-
-      const now = performance.now();
-      this.portalCooldownUntil = now + 350;
-      this.msg = "";
-      this.msgUntil = 0;
-
-      const lvl = this.levelIndex + 1;
-      this.levelQuestions = (QUESTIONS_BY_LEVEL[lvl] || []).slice(0, QUESTIONS_PER_LEVEL);
-      this.qIndex = 0;
-      this.currentQuestion = null;
-
-      this.confetti.length = 0;
-    }
-
-    computeLevelBounds() {
-      const all = [...this.level.platforms, this.level.portal, ...this.level.coins];
-      this.minX = Math.min(...all.map(r => r.x)) - 200;
-      this.maxX = Math.max(...all.map(r => r.x + r.w)) + 200;
-      this.minY = Math.min(...all.map(r => r.y)) - 200;
-      this.maxY = Math.max(...all.map(r => r.y + r.h)) + 200;
-    }
-
-    updateCamera(force) {
-      const targetX = (this.player.rect.x + this.player.rect.w/2) - WIDTH/2;
-      const targetY = (this.player.rect.y + this.player.rect.h/2) - HEIGHT/2;
-
-      if (force) {
-        this.camX = targetX;
-        this.camY = targetY;
-      } else {
-        this.camX = (this.camX + (targetX - this.camX) * 0.12) | 0;
-        this.camY = (this.camY + (targetY - this.camY) * 0.12) | 0;
-      }
-
-      this.camX = clamp(this.camX, this.minX, this.maxX - WIDTH);
-      this.camY = clamp(this.camY, this.minY, this.maxY - HEIGHT);
-    }
-
-    worldToScreen(r) {
-      return rect(r.x - this.camX, r.y - this.camY, r.w, r.h);
-    }
-
-    showMessage(text) {
-      this.msg = text;
-      this.msgUntil = performance.now() + MSG_MS;
-    }
-
-    collectCoins() {
-      const now = performance.now();
-      const remaining = [];
-      let gotAny = false;
-
-      for (const c of this.level.coins) {
-        if (intersects(this.player.rect, c)) {
-          this.levelCoins += 1;
-          this.totalCoins += 1;
-          gotAny = true;
-        } else remaining.push(c);
-      }
-      this.level.coins = remaining;
-      if (gotAny) this.coinPopUntil = now + COIN_POP_MS;
-    }
-
-    spawnConfetti() {
-      for (let i = 0; i < CONFETTI_COUNT; i++) this.confetti.push(new ConfettiParticle(WIDTH/2, 130));
-    }
-
-    beginFeedback(good, title, text, nextAction) {
-      const now = performance.now();
-      this.feedbackGood = good;
-      this.feedbackTitle = title;
-      this.feedbackText = text;
-      this.feedbackUntil = now + FEEDBACK_MS;
-      this.feedbackNext = nextAction;
-      this.mode = "feedback";
-
-      if (good) { this.spawnConfetti(); soundCorrect(); }
-      else { this.lives -= 1; soundWrong(); }
-    }
-
-    startNextQuestion() {
-      if (this.qIndex >= this.levelQuestions.length) { this.advanceLevel(); return; }
-      this.currentQuestion = this.levelQuestions[this.qIndex];
-      this.mode = "question";
-    }
-
-    answerQuestion(choiceIndex) {
-      const q = this.currentQuestion;
-      const chosen = q.options[choiceIndex];
-
-      if (chosen === q.answer) {
-        this.beginFeedback(true, "Correct!", q.fact, "next_q");
-      } else {
-        const nextLives = this.lives - 1;
-        if (nextLives <= 0) {
-          this.beginFeedback(false, "Wrong!", `Correct answer: ${q.answer}`, "game_over");
-        } else {
-          this.beginFeedback(false, "Wrong!", `Correct answer: ${q.answer}\nLives left: ${nextLives}`, "next_q");
-        }
-      }
-    }
-
-    tryPortal() {
-      if (this.levelCoins < this.requiredCoins) {
-        const need = this.requiredCoins - this.levelCoins;
-        this.showMessage(`Portal locked: collect ${need} more coin(s)!`);
-        return;
-      }
-      this.qIndex = 0;
-      this.startNextQuestion();
-    }
-
-    advanceLevel() {
-      this.levelIndex += 1;
-      if (this.levelIndex >= TOTAL_LEVELS) { this.mode = "win"; return; }
-      this.loadLevel(true);
-      this.mode = "play";
-    }
-
-    // ----------------------------
-    // DRAWING
-    // ----------------------------
-    drawPortalGlow(nowMs) {
-      const ctx = this.ctx;
-      const pr = this.worldToScreen(this.level.portal);
-      const cx = pr.x + pr.w / 2;
-      const cy = pr.y + pr.h / 2;
-
-      const pulse = 0.5 + 0.5 * Math.sin(nowMs * 0.004);
-      const glowPad = 16 + pulse * 10;
-
-      const grad = ctx.createRadialGradient(cx, cy, 8, cx, cy, Math.max(pr.w, pr.h) + glowPad);
-      grad.addColorStop(0, `rgba(190,140,255,${0.22 + pulse * 0.20})`);
-      grad.addColorStop(0.6, `rgba(150,60,220,${0.10 + pulse * 0.10})`);
-      grad.addColorStop(1, "rgba(150,60,220,0)");
-
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, pr.w/2 + glowPad, pr.h/2 + glowPad, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      // portal body
-      ctx.fillStyle = PORTAL_COLOR;
-      roundRect(ctx, pr.x, pr.y, pr.w, pr.h, 10);
-      ctx.fill();
-
-      // outline pulse
-      ctx.strokeStyle = `rgba(190,140,255,${0.35 + pulse * 0.35})`;
-      ctx.lineWidth = 3;
-      roundRect(ctx, pr.x - 5, pr.y - 5, pr.w + 10, pr.h + 10, 12);
-      ctx.stroke();
-    }
-
-    drawHUD(nowMs) {
-      const ctx = this.ctx;
-
-      // top bar
-      const barX = 14, barY = 12, barW = WIDTH - 28, barH = 66;
-      ctx.globalAlpha = 0.95;
-      ctx.fillStyle = "#ffffff";
-      roundRect(ctx, barX, barY, barW, barH, 14);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-
-      ctx.strokeStyle = "#e2e6ee";
-      ctx.lineWidth = 1;
-      roundRect(ctx, barX, barY, barW, barH, 14);
-      ctx.stroke();
-
-      // line 1
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = (nowMs < this.coinPopUntil) ? "bold 22px Arial" : "bold 20px Arial";
-      ctx.fillText(
-        `${this.level.name}  •  Coins: ${this.levelCoins}/${this.requiredCoins}  •  Total: ${this.totalCoins}  •  Lives: ${this.lives}`,
-        barX + 18, barY + 30
-      );
-
-      // line 2
-      ctx.fillStyle = "#3c4652";
-      ctx.font = "14px Arial";
-      ctx.fillText(
-        `Move: A/D or ←/→   Jump: Space/W/↑   Touch portal for quiz   Esc: Quit`,
-        barX + 18, barY + 54
-      );
-
-      // messages
-      if (nowMs < this.msgUntil && this.msg) {
-        ctx.fillStyle = "#b42828";
-        ctx.font = "bold 22px Arial";
-        const w = ctx.measureText(this.msg).width;
-        ctx.fillText(this.msg, (WIDTH - w) / 2, barY + barH + 30);
-      }
-    }
-
-    drawWorld(nowMs) {
-      const ctx = this.ctx;
-      ctx.fillStyle = BG_COLOR;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      // platforms
-      ctx.fillStyle = PLATFORM_COLOR;
-      for (const p of this.level.platforms) {
-        const r = this.worldToScreen(p);
-        roundRect(ctx, r.x, r.y, r.w, r.h, 6);
-        ctx.fill();
-      }
-
-      // coins
-      ctx.fillStyle = COIN_COLOR;
-      for (const c of this.level.coins) {
-        const r = this.worldToScreen(c);
-        ctx.beginPath();
-        ctx.ellipse(r.x + r.w/2, r.y + r.h/2, r.w/2, r.h/2, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // portal glow
-      this.drawPortalGlow(nowMs);
-
-      // player
-      const pl = this.worldToScreen(this.player.rect);
-      ctx.fillStyle = PLAYER_COLOR;
-      roundRect(ctx, pl.x, pl.y, pl.w, pl.h, 8);
-      ctx.fill();
-
-      this.drawHUD(nowMs);
-    }
-
-    drawStart() {
-      const ctx = this.ctx;
-      ctx.fillStyle = BG_COLOR;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = "bold 42px Arial";
-      const title = "Time Travel Platformer + Quiz (4 Levels)";
-      ctx.fillText(title, (WIDTH - ctx.measureText(title).width)/2, 120);
-
-      ctx.font = "20px Arial";
-      const lines = [
-        "Instructions:",
-        "• Move with A/D or Left/Right Arrow",
-        "• Jump with Space (or W / Up Arrow)",
-        "• Collect ALL coins in the level to unlock the portal",
-        "• Touch the portal to start a 4-question quiz",
-        "• Answer with keys 1 / 2 / 3",
-        `• You have ${MAX_LIVES} lives (wrong answers reduce lives)`,
-        "",
-        "Press ENTER to start"
-      ];
-      let y = 185;
-      for (const line of lines) {
-        const w = ctx.measureText(line).width;
-        ctx.fillText(line, (WIDTH - w)/2, y);
-        y += 28;
-      }
-    }
-
-    drawQuestion(nowMs) {
-      this.drawWorld(nowMs);
-      const ctx = this.ctx;
-
-      const card = rect(80, 90, WIDTH - 160, HEIGHT - 180);
-      ctx.fillStyle = "#ffffff";
-      roundRect(ctx, card.x, card.y, card.w, card.h, 18);
-      ctx.fill();
-      ctx.strokeStyle = "#d2d2d2";
-      ctx.lineWidth = 2;
-      roundRect(ctx, card.x, card.y, card.w, card.h, 18);
-      ctx.stroke();
-
-      const q = this.currentQuestion;
-      const lvl = this.levelIndex + 1;
-
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = "bold 26px Arial";
-      ctx.fillText(
-        `Level ${lvl} Quiz — Q${this.qIndex + 1}/${this.levelQuestions.length} (Year: ${q.year})`,
-        card.x + 20, card.y + 42
-      );
-
-      ctx.font = "20px Arial";
-      const qLines = wrapLines(ctx, q.question, card.w - 40);
-      let y = card.y + 80;
-      for (const line of qLines) {
-        ctx.fillText(line, card.x + 20, y);
-        y += 24;
-      }
-
-      y += 10;
-      for (let i = 0; i < q.options.length; i++) {
-        ctx.fillText(`${i+1}) ${q.options[i]}`, card.x + 20, y);
-        y += 30;
-      }
-
-      ctx.fillStyle = "#555";
-      ctx.font = "16px Arial";
-      ctx.fillText("Press 1 / 2 / 3 to answer", card.x + 20, card.y + card.h - 18);
-    }
-
-    drawFeedback() {
-      const ctx = this.ctx;
-      ctx.fillStyle = BG_COLOR;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      for (const p of this.confetti) { p.update(); p.draw(ctx); }
-      this.confetti = this.confetti.filter(p => p.life > 0 && p.y < HEIGHT + 80);
-
-      const color = this.feedbackGood ? "#147828" : "#b42828";
-      ctx.fillStyle = color;
-      ctx.font = "bold 42px Arial";
-      const t = this.feedbackTitle;
-      ctx.fillText(t, (WIDTH - ctx.measureText(t).width)/2, 200);
-
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = "20px Arial";
-      const lines = this.feedbackText.split("\n").flatMap(line => wrapLines(ctx, line, WIDTH - 180));
-      let y = 255;
-      for (const line of lines.slice(0, 7)) {
-        ctx.fillText(line, (WIDTH - ctx.measureText(line).width)/2, y);
-        y += 28;
-      }
-    }
-
-    drawWin() {
-      const ctx = this.ctx;
-      ctx.fillStyle = BG_COLOR;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      ctx.fillStyle = "#147828";
-      ctx.font = "bold 42px Arial";
-      const t = "YOU WIN!";
-      ctx.fillText(t, (WIDTH - ctx.measureText(t).width)/2, 210);
-
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = "20px Arial";
-      const s = `Total Coins Collected: ${this.totalCoins}`;
-      ctx.fillText(s, (WIDTH - ctx.measureText(s).width)/2, 260);
-    }
-
-    drawGameOver() {
-      const ctx = this.ctx;
-      ctx.fillStyle = BG_COLOR;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      ctx.fillStyle = "#b42828";
-      ctx.font = "bold 42px Arial";
-      const t = "GAME OVER";
-      ctx.fillText(t, (WIDTH - ctx.measureText(t).width)/2, 210);
-
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = "20px Arial";
-      ctx.fillText("You ran out of lives.", (WIDTH - ctx.measureText("You ran out of lives.").width)/2, 260);
-
-      ctx.font = "16px Arial";
-      ctx.fillText("Press R to restart, or ESC to go to Start screen.", (WIDTH - ctx.measureText("Press R to restart, or ESC to go to Start screen.").width)/2, 292);
-    }
-
-    drawQuitModal() {
-      const ctx = this.ctx;
-
-      ctx.save();
-      ctx.globalAlpha = 0.35;
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      ctx.restore();
-
-      const cardW = 520, cardH = 240;
-      const x = (WIDTH - cardW) / 2;
-      const y = (HEIGHT - cardH) / 2;
-
-      ctx.fillStyle = "#fff";
-      roundRect(ctx, x, y, cardW, cardH, 18);
-      ctx.fill();
-
-      ctx.strokeStyle = "#d2d2d2";
-      ctx.lineWidth = 2;
-      roundRect(ctx, x, y, cardW, cardH, 18);
-      ctx.stroke();
-
-      ctx.fillStyle = TEXT_COLOR;
-      ctx.font = "bold 34px Arial";
-      const title = "Quit Game?";
-      ctx.fillText(title, x + (cardW - ctx.measureText(title).width)/2, y + 70);
-
-      ctx.font = "18px Arial";
-      ctx.fillStyle = "#3c4652";
-      const a = "Press ENTER to Resume";
-      const b = "Press Q to Quit to Start screen";
-      ctx.fillText(a, x + (cardW - ctx.measureText(a).width)/2, y + 125);
-      ctx.fillText(b, x + (cardW - ctx.measureText(b).width)/2, y + 155);
-
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#7a8492";
-      const note = "(Browser can’t close the tab automatically.)";
-      ctx.fillText(note, x + (cardW - ctx.measureText(note).width)/2, y + 190);
-    }
-
-    // ----------------------------
-    // UPDATE + RENDER
-    // ----------------------------
-    update(nowMs) {
-      if (this.mode === "play") {
-        this.player.update(this.level.platforms, nowMs);
-        this.collectCoins();
-        this.updateCamera(false);
-
-        if (nowMs >= this.portalCooldownUntil && intersects(this.player.rect, this.level.portal)) {
-          this.portalCooldownUntil = nowMs + 400;
-          this.tryPortal();
-        }
-      }
-
-      if (this.mode === "feedback" && nowMs >= this.feedbackUntil) {
-        if (this.feedbackNext === "next_q") {
-          if (this.lives <= 0) this.mode = "game_over";
-          else { this.qIndex += 1; this.startNextQuestion(); }
-        } else if (this.feedbackNext === "game_over") {
-          this.mode = "game_over";
-        }
-      }
-    }
-
-    render(nowMs) {
-      if (this.mode === "start") return this.drawStart();
-      if (this.mode === "play") return this.drawWorld(nowMs);
-      if (this.mode === "question") return this.drawQuestion(nowMs);
-      if (this.mode === "feedback") return this.drawFeedback();
-      if (this.mode === "win") return this.drawWin();
-      if (this.mode === "game_over") return this.drawGameOver();
-      if (this.mode === "quit") {
-        this.drawWorld(nowMs);
-        return this.drawQuitModal();
-      }
-    }
-  }
-
-  // ============================================================
-  // BOOT
-  // ============================================================
-  const canvas = document.getElementById("game");
-  const game = new Game(canvas);
-
-  // First paint immediately (so never blank)
-  game.render(performance.now());
-
-  // Main loop
-  let last = performance.now();
-  function loop(now) {
-    const dt = now - last;
-    if (dt > 50) last = now - 50; // clamp
-
-    game.update(now);
-    game.render(now);
-
-    last = now;
-    requestAnimationFrame(loop);
-  }
-
-  requestAnimationFrame(loop);
-})();
-
-
+        self.player = Player(*self.level["spawn"])
+        self.level_coins = 0
+        self.required_coins = self.level["required_coins"]
+
+        self.compute_level_bounds()
+        self.update_camera(force=force_camera)
+
+        now = pygame.time.get_ticks()
+        self.portal_cooldown_until = now + 350
+        self.msg = ""
+        self.msg_until = 0
+
+        lvl_num = self.level_index + 1
+        self.level_questions = list(QUESTIONS_BY_LEVEL.get(lvl_num, []))[:QUESTIONS_PER_LEVEL]
+        self.q_index = 0
+        self.current_question = None
+
+        self.confetti.clear()
+
+    def compute_level_bounds(self):
+        all_rects = self.level["platforms"] + [self.level["portal"]] + self.level["coins"]
+        self.min_x = min(r.left for r in all_rects) - 200
+        self.max_x = max(r.right for r in all_rects) + 200
+        self.min_y = min(r.top for r in all_rects) - 200
+        self.max_y = max(r.bottom for r in all_rects) + 200
+
+    def update_camera(self, force=False):
+        target_x = self.player.rect.centerx - WIDTH // 2
+        target_y = self.player.rect.centery - HEIGHT // 2
+
+        if force:
+            self.cam_x = target_x
+            self.cam_y = target_y
+        else:
+            self.cam_x = int(self.cam_x + (target_x - self.cam_x) * 0.12)
+            self.cam_y = int(self.cam_y + (target_y - self.cam_y) * 0.12)
+
+        self.cam_x = clamp(self.cam_x, self.min_x, self.max_x - WIDTH)
+        self.cam_y = clamp(self.cam_y, self.min_y, self.max_y - HEIGHT)
+
+    def world_to_screen(self, rect):
+        return pygame.Rect(rect.x - self.cam_x, rect.y - self.cam_y, rect.w, rect.h)
+
+    def show_message(self, text):
+        self.msg = text
+        self.msg_until = pygame.time.get_ticks() + MSG_MS
+
+    def collect_coins(self):
+        remaining = []
+        got_any = False
+        for c in self.level["coins"]:
+            if self.player.rect.colliderect(c):
+                self.level_coins += 1
+                self.total_coins += 1
+                got_any = True
+            else:
+                remaining.append(c)
+        self.level["coins"] = remaining
+        if got_any:
+            self.coin_pop_until = pygame.time.get_ticks() + COIN_POP_MS
+
+    def spawn_confetti(self):
+        for _ in range(CONFETTI_COUNT):
+            self.confetti.append(ConfettiParticle(WIDTH // 2, 130))
+
+    def begin_feedback(self, good, title, text, next_action):
+        now = pygame.time.get_ticks()
+        self.feedback_good = good
+        self.feedback_title = title
+        self.feedback_text = text
+        self.feedback_until = now + FEEDBACK_MS
+        self.feedback_next = next_action
+        self.mode = "feedback"
+
+        if good:
+            self.spawn_confetti()
+            if self.snd_correct:
+                try: self.snd_correct.play()
+                except Exception: pass
+        else:
+            self.lives -= 1
+            if self.snd_wrong:
+                try: self.snd_wrong.play()
+                except Exception: pass
+
+    def start_next_question(self):
+        if self.q_index >= len(self.level_questions):
+            self.advance_level()
+            return
+        self.current_question = self.level_questions[self.q_index]
+        self.mode = "question"
+
+    def answer_question(self, choice_index):
+        q = self.current_question
+        chosen = q["options"][choice_index]
+        if chosen == q["answer"]:
+            self.begin_feedback(True, "Correct!", q["fact"], "next_q")
+        else:
+            next_lives = self.lives - 1
+            if next_lives <= 0:
+                self.begin_feedback(False, "Wrong!", f"Correct answer: {q['answer']}", "game_over")
+            else:
+                self.begin_feedback(False, "Wrong!", f"Correct answer: {q['answer']}\nLives left: {next_lives}", "next_q")
+
+    def try_portal(self):
+        if self.level_coins < self.required_coins:
+            need = self.required_coins - self.level_coins
+            self.show_message(f"Portal locked: collect {need} more coin(s)!")
+            return
+        self.q_index = 0
+        self.start_next_question()
+
+    def advance_level(self):
+        self.level_index += 1
+        if self.level_index >= TOTAL_LEVELS:
+            self.mode = "win"
+            return
+        self.load_level(force_camera=True)
+        self.mode = "play"
+
+    def draw_world(self):
+        self.screen.fill(BG_COLOR)
+
+        for p in self.level["platforms"]:
+            pygame.draw.rect(self.screen, PLATFORM_COLOR, self.world_to_screen(p), border_radius=6)
+
+        for c in self.level["coins"]:
+            pygame.draw.ellipse(self.screen, COIN_COLOR, self.world_to_screen(c))
+
+        pr = self.world_to_screen(self.level["portal"])
+        pygame.draw.rect(self.screen, PORTAL_COLOR, pr, border_radius=10)
+        pygame.draw.rect(self.screen, (190, 140, 255), pr.inflate(10, 10), width=3, border_radius=12)
+
+        pygame.draw.rect(self.screen, PLAYER_COLOR, self.world_to_screen(self.player.rect), border_radius=8)
+
+        self.draw_hud()
+
+    def draw_hud(self):
+        now = pygame.time.get_ticks()
+        hud_font = pygame.font.SysFont("arial", 26, bold=True) if now < self.coin_pop_until else self.font
+        hud = hud_font.render(
+            f"{self.level['name']} | Coins: {self.level_coins}/{self.required_coins} | Total: {self.total_coins} | Lives: {self.lives}",
+            True, TEXT_COLOR
+        )
+        self.screen.blit(hud, (16, 16))
+
+        hint = self.font.render(
+            "Move: A/D or ←/→   Jump: Space/W/↑   Touch portal for quiz   ESC: Quit",
+            True, (60, 70, 80)
+        )
+        self.screen.blit(hint, (16, 42))
+
+        if now < self.msg_until and self.msg:
+            msg = self.big.render(self.msg, True, (180, 40, 40))
+            self.screen.blit(msg, (WIDTH // 2 - msg.get_width() // 2, 90))
+
+    def draw_start(self):
+        self.screen.fill(BG_COLOR)
+        title = self.huge.render("Time Travel Platformer + Quiz (4 Levels)", True, TEXT_COLOR)
+        self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 90))
+
+        lines = [
+            "Instructions:",
+            "• Move with A/D or Left/Right Arrow",
+            "• Jump with Space (or W / Up Arrow)",
+            "• Collect ALL coins in the level to unlock the portal",
+            "• Touch the portal to start a 4-question quiz",
+            "• Answer each question with keys 1 / 2 / 3",
+            f"• You have {MAX_LIVES} lives (wrong answers reduce lives)",
+            "",
+            "Press ENTER to start   |   Press ESC to quit",
+        ]
+        y = 170
+        for line in lines:
+            t = self.font.render(line, True, TEXT_COLOR)
+            self.screen.blit(t, (WIDTH // 2 - t.get_width() // 2, y))
+            y += 28
+        pygame.display.flip()
+
+    def draw_question(self):
+        self.draw_world()
+
+        card = pygame.Rect(80, 80, WIDTH - 160, HEIGHT - 160)
+        pygame.draw.rect(self.screen, OVERLAY_BG, card, border_radius=18)
+        pygame.draw.rect(self.screen, (210, 210, 210), card, width=2, border_radius=18)
+
+        q = self.current_question
+        lvl = self.level_index + 1
+        title = self.big.render(
+            f"Level {lvl} Quiz — Q{self.q_index + 1}/{len(self.level_questions)} (Year: {q['year']})",
+            True, TEXT_COLOR
+        )
+        self.screen.blit(title, (card.x + 20, card.y + 18))
+
+        q_lines = wrap_lines(self.font, q["question"], card.w - 40)
+        y = card.y + 70
+        for line in q_lines:
+            self.screen.blit(self.font.render(line, True, TEXT_COLOR), (card.x + 20, y))
+            y += 24
+
+        y += 8
+        for i, opt in enumerate(q["options"], start=1):
+            self.screen.blit(self.font.render(f"{i}) {opt}", True, TEXT_COLOR), (card.x + 20, y))
+            y += 30
+
+        hint = self.font.render("Press 1 / 2 / 3 to answer", True, (70, 70, 70))
+        self.screen.blit(hint, (card.x + 20, card.bottom - 40))
+
+        pygame.display.flip()
+
+    def draw_feedback(self):
+        self.screen.fill(BG_COLOR)
+
+        for p in self.confetti:
+            p.update()
+            p.draw(self.screen)
+        self.confetti = [p for p in self.confetti if p.life > 0 and p.y < HEIGHT + 80]
+
+        color = (20, 120, 40) if self.feedback_good else (180, 40, 40)
+        title = self.huge.render(self.feedback_title, True, color)
+        self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 160))
+
+        lines = wrap_lines(self.font, self.feedback_text, WIDTH - 180)
+        y = 240
+        for line in lines[:6]:
+            t = self.font.render(line, True, TEXT_COLOR)
+            self.screen.blit(t, (WIDTH // 2 - t.get_width() // 2, y))
+            y += 28
+
+        pygame.display.flip()
+
+    def draw_win(self):
+        self.screen.fill(BG_COLOR)
+        t = self.huge.render("YOU WIN!", True, (20, 120, 40))
+        self.screen.blit(t, (WIDTH // 2 - t.get_width() // 2, 170))
+
+        summary = self.font.render(f"Total Coins Collected: {self.total_coins}", True, TEXT_COLOR)
+        self.screen.blit(summary, (WIDTH // 2 - summary.get_width() // 2, 230))
+
+        hint = self.font.render("Press ESC to quit", True, TEXT_COLOR)
+        self.screen.blit(hint, (WIDTH // 2 - hint.get_width() // 2, 265))
+        pygame.display.flip()
+
+    def draw_game_over(self):
+        self.screen.fill(BG_COLOR)
+        t = self.huge.render("GAME OVER", True, (180, 40, 40))
+        self.screen.blit(t, (WIDTH // 2 - t.get_width() // 2, 170))
+
+        summary = self.font.render("You ran out of lives.", True, TEXT_COLOR)
+        self.screen.blit(summary, (WIDTH // 2 - summary.get_width() // 2, 230))
+
+        hint = self.font.render("Press R to restart, or ESC to quit", True, TEXT_COLOR)
+        self.screen.blit(hint, (WIDTH // 2 - hint.get_width() // 2, 265))
+        pygame.display.flip()
+
+    def run(self):
+        while True:
+            self.clock.tick(FPS)
+            now = pygame.time.get_ticks()
+
+            for e in pygame.event.get():
+                if e.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if e.type == pygame.KEYDOWN:
+                    if e.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
+
+                    if self.mode == "start":
+                        if e.key == pygame.K_RETURN:
+                            self.mode = "play"
+
+                    elif self.mode == "play":
+                        if e.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
+                            self.player.request_jump(now)
+
+                    elif self.mode == "question":
+                        if e.key == pygame.K_1:
+                            self.answer_question(0)
+                        elif e.key == pygame.K_2:
+                            self.answer_question(1)
+                        elif e.key == pygame.K_3:
+                            self.answer_question(2)
+
+                    elif self.mode == "game_over":
+                        if e.key == pygame.K_r:
+                            self.reset_whole_game()
+
+                if e.type == pygame.KEYUP:
+                    if e.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
+                        self.player.release_jump()
+
+            if self.mode == "start":
+                self.draw_start()
+                continue
+
+            if self.mode == "play":
+                self.player.update(self.level["platforms"], now)
+                self.collect_coins()
+                self.update_camera(force=False)
+
+                if now >= self.portal_cooldown_until and self.player.rect.colliderect(self.level["portal"]):
+                    self.portal_cooldown_until = now + 400
+                    self.try_portal()
+
+                self.draw_world()
+                pygame.display.flip()
+                continue
+
+            if self.mode == "question":
+                self.update_camera(force=False)
+                self.draw_question()
+                continue
+
+            if self.mode == "feedback":
+                self.draw_feedback()
+                if now >= self.feedback_until:
+                    if self.feedback_next == "next_q":
+                        if self.lives <= 0:
+                            self.mode = "game_over"
+                        else:
+                            self.q_index += 1
+                            self.start_next_question()
+                    elif self.feedback_next == "game_over":
+                        self.mode = "game_over"
+                continue
+
+            if self.mode == "win":
+                self.draw_win()
+                continue
+
+            if self.mode == "game_over":
+                self.draw_game_over()
+                continue
+
+
+if __name__ == "__main__":
+    Game().run()
