@@ -5,6 +5,7 @@ import random
 import os
 import wave
 import struct
+console.log("game.js loaded ✅");
 
 # ----------------------------
 # CONFIG
@@ -821,3 +822,4 @@ class Game:
 
 if __name__ == "__main__":
     Game().run()
+
