@@ -256,9 +256,9 @@
       rect(-300, 560, 2200, 70),
       rect(80, 500, 260, 20),
       rect(400, 420, 260, 20),
-      rect(900, 340, 260, 20),
+      rect(800, 340, 260, 20),
       rect(260, 260, 260, 20),
-      rect(1000, 180, 260, 20),
+      rect(600, 180, 260, 20),
       rect(420, 100, 260, 20),
     ];
     const coins = platforms.slice(1).map(coinOnPlatform);
@@ -912,3 +912,4 @@
 
   requestAnimationFrame(loop);
 })();
+
