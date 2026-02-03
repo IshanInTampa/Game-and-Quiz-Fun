@@ -801,7 +801,7 @@ ctx.restore(); // stop clipping before drawing HUD
         "Instructions:",
         "• Move with A/D or Left/Right Arrow",
         "• Jump with Space (or W / Up Arrow)",
-        "• Collect ALL coins in the level to unlock the portal",
+        "• Collect ALL coins in the level to unlock the Quiz for that level(Total 4 Levels)",
         "• Touch the portal to start a 4-question quiz",
         "• Answer with keys 1 / 2 / 3 (or tap the answers on mobile)",
         `• You have ${MAX_LIVES} lives (wrong answers reduce lives)`,
@@ -1012,5 +1012,6 @@ ctx.restore(); // stop clipping before drawing HUD
   }
   requestAnimationFrame(loop);
 })();
+
 
 
