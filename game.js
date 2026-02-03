@@ -145,11 +145,42 @@
   }
 
   // ============================================================
+  // RESPONSIVE CANVAS (fix mobile alignment)
+  // ============================================================
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  function resizeCanvas() {
+    // Fit inside viewport while keeping aspect ratio
+    const pad = 20;
+    const topUI = 90; // room for hint bar on mobile/desktop
+    const maxW = Math.max(320, window.innerWidth - pad);
+    const maxH = Math.max(260, window.innerHeight - topUI - pad);
+
+    const scale = Math.min(maxW / WIDTH, maxH / HEIGHT, 1);
+
+    // CSS size
+    canvas.style.width = Math.floor(WIDTH * scale) + "px";
+    canvas.style.height = Math.floor(HEIGHT * scale) + "px";
+
+    // Real pixel size for crisp rendering
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(WIDTH * dpr);
+    canvas.height = Math.floor(HEIGHT * dpr);
+
+    // Make 1 unit in drawing = 1 unit in game coordinates
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resizeCanvas, { passive: true });
+  resizeCanvas();
+
+  // ============================================================
   // AUDIO (WebAudio) — safe + simple
   // ============================================================
   let audioCtx = null;
   function ensureAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
   }
 
   function playToneSequence(freqs, dur, type, gainVal) {
@@ -204,7 +235,7 @@
   }
 
   // ============================================================
-  // LEVELS (same geometry as your pygame)
+  // LEVELS
   // ============================================================
   function makeLevel1() {
     const platforms = [
@@ -268,7 +299,7 @@
   const LEVELS = [makeLevel1(), makeLevel2(), makeLevel3(), makeLevel4()];
 
   // ============================================================
-  // INPUT
+  // INPUT (keyboard + touch)
   // ============================================================
   const keys = new Set();
   window.addEventListener("keydown", (e) => {
@@ -276,6 +307,60 @@
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) e.preventDefault();
   }, { passive: false });
   window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
+
+  // Touch state (no icons/buttons; just touch zones)
+  const touchState = { left:false, right:false, jump:false };
+
+  function canvasPosFromEvent(ev) {
+    const r = canvas.getBoundingClientRect();
+    const x = (ev.clientX - r.left) * (WIDTH / r.width);
+    const y = (ev.clientY - r.top) * (HEIGHT / r.height);
+    return { x, y };
+  }
+
+  function applyTouchZones(points) {
+    // reset
+    touchState.left = false;
+    touchState.right = false;
+    touchState.jump = false;
+
+    // zones:
+    // left third -> move left
+    // right third -> move right
+    // bottom-right quarter -> jump (easy on thumbs)
+    for (const p of points) {
+      if (p.x < WIDTH * 0.33) touchState.left = true;
+      if (p.x > WIDTH * 0.67) touchState.right = true;
+      if (p.x > WIDTH * 0.55 && p.y > HEIGHT * 0.70) touchState.jump = true;
+    }
+  }
+
+  // Track multi-touch points
+  const activePointers = new Map();
+
+  canvas.addEventListener("pointerdown", (e) => {
+    canvas.setPointerCapture(e.pointerId);
+    const p = canvasPosFromEvent(e);
+    activePointers.set(e.pointerId, p);
+    applyTouchZones(activePointers.values());
+    e.preventDefault();
+  }, { passive:false });
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (!activePointers.has(e.pointerId)) return;
+    activePointers.set(e.pointerId, canvasPosFromEvent(e));
+    applyTouchZones(activePointers.values());
+    e.preventDefault();
+  }, { passive:false });
+
+  function clearPointer(e) {
+    activePointers.delete(e.pointerId);
+    applyTouchZones(activePointers.values());
+    e.preventDefault();
+  }
+
+  canvas.addEventListener("pointerup", clearPointer, { passive:false });
+  canvas.addEventListener("pointercancel", clearPointer, { passive:false });
 
   // ============================================================
   // PLAYER
@@ -296,10 +381,10 @@
     }
     releaseJump() { this.jumpHeld = false; }
 
-    update(platforms, nowMs) {
-      const left = keys.has("a") || keys.has("arrowleft");
-      const right = keys.has("d") || keys.has("arrowright");
-      const jumpPressed = keys.has(" ") || keys.has("w") || keys.has("arrowup");
+    update(platforms, nowMs, input) {
+      const left = input.left;
+      const right = input.right;
+      const jumpPressed = input.jump;
 
       this.vx = 0;
       if (left) this.vx = -MOVE_SPEED;
@@ -355,10 +440,7 @@
   // GAME
   // ============================================================
   class Game {
-    constructor(canvas) {
-      this.canvas = canvas;
-      this.ctx = canvas.getContext("2d");
-
+    constructor() {
       this.lives = MAX_LIVES;
       this.mode = "start"; // start, play, question, feedback, win, game_over, quit
 
@@ -389,12 +471,14 @@
       this.minX = 0; this.maxX = 0;
       this.minY = 0; this.maxY = 0;
 
+      // tap regions for quiz options (mobile)
+      this.optionRects = [];
+
       this.loadLevel(true);
 
       window.addEventListener("keydown", (e) => {
         const k = e.key.toLowerCase();
 
-        // ESC behavior: open quit modal during play
         if (k === "escape") {
           if (this.mode === "play") { this.mode = "quit"; return; }
           if (this.mode === "quit") { this.mode = "play"; return; }
@@ -423,6 +507,36 @@
           this.resetWholeGame();
         }
       });
+
+      // Tap support: start, quiz answers, quit modal
+      canvas.addEventListener("pointerdown", (e) => {
+        const p = canvasPosFromEvent(e);
+
+        // Start screen: tap anywhere to start
+        if (this.mode === "start") {
+          ensureAudio();
+          this.mode = "play";
+          return;
+        }
+
+        // Quiz: tap an option
+        if (this.mode === "question") {
+          for (let i = 0; i < this.optionRects.length; i++) {
+            const r = this.optionRects[i];
+            if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) {
+              this.answerQuestion(i);
+              return;
+            }
+          }
+        }
+
+        // Quit modal: tap top = resume, bottom = quit-to-start
+        if (this.mode === "quit") {
+          if (p.y < HEIGHT * 0.55) this.mode = "play";
+          else this.mode = "start";
+          return;
+        }
+      }, { passive:true });
     }
 
     resetWholeGame() {
@@ -463,6 +577,7 @@
       this.currentQuestion = null;
 
       this.confetti.length = 0;
+      this.optionRects = [];
     }
 
     computeLevelBounds() {
@@ -489,9 +604,7 @@
       this.camY = clamp(this.camY, this.minY, this.maxY - HEIGHT);
     }
 
-    worldToScreen(r) {
-      return rect(r.x - this.camX, r.y - this.camY, r.w, r.h);
-    }
+    worldToScreen(r) { return rect(r.x - this.camX, r.y - this.camY, r.w, r.h); }
 
     showMessage(text) {
       this.msg = text;
@@ -535,6 +648,7 @@
       if (this.qIndex >= this.levelQuestions.length) { this.advanceLevel(); return; }
       this.currentQuestion = this.levelQuestions[this.qIndex];
       this.mode = "question";
+      this.optionRects = [];
     }
 
     answerQuestion(choiceIndex) {
@@ -574,7 +688,6 @@
     // DRAWING
     // ----------------------------
     drawPortalGlow(nowMs) {
-      const ctx = this.ctx;
       const pr = this.worldToScreen(this.level.portal);
       const cx = pr.x + pr.w / 2;
       const cy = pr.y + pr.h / 2;
@@ -592,12 +705,10 @@
       ctx.ellipse(cx, cy, pr.w/2 + glowPad, pr.h/2 + glowPad, 0, 0, Math.PI*2);
       ctx.fill();
 
-      // portal body
       ctx.fillStyle = PORTAL_COLOR;
       roundRect(ctx, pr.x, pr.y, pr.w, pr.h, 10);
       ctx.fill();
 
-      // outline pulse
       ctx.strokeStyle = `rgba(190,140,255,${0.35 + pulse * 0.35})`;
       ctx.lineWidth = 3;
       roundRect(ctx, pr.x - 5, pr.y - 5, pr.w + 10, pr.h + 10, 12);
@@ -605,9 +716,6 @@
     }
 
     drawHUD(nowMs) {
-      const ctx = this.ctx;
-
-      // top bar
       const barX = 14, barY = 12, barW = WIDTH - 28, barH = 66;
       ctx.globalAlpha = 0.95;
       ctx.fillStyle = "#ffffff";
@@ -620,7 +728,6 @@
       roundRect(ctx, barX, barY, barW, barH, 14);
       ctx.stroke();
 
-      // line 1
       ctx.fillStyle = TEXT_COLOR;
       ctx.font = (nowMs < this.coinPopUntil) ? "bold 22px Arial" : "bold 20px Arial";
       ctx.fillText(
@@ -628,7 +735,6 @@
         barX + 18, barY + 30
       );
 
-      // line 2
       ctx.fillStyle = "#3c4652";
       ctx.font = "14px Arial";
       ctx.fillText(
@@ -636,7 +742,6 @@
         barX + 18, barY + 54
       );
 
-      // messages
       if (nowMs < this.msgUntil && this.msg) {
         ctx.fillStyle = "#b42828";
         ctx.font = "bold 22px Arial";
@@ -646,11 +751,9 @@
     }
 
     drawWorld(nowMs) {
-      const ctx = this.ctx;
       ctx.fillStyle = BG_COLOR;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      // platforms
       ctx.fillStyle = PLATFORM_COLOR;
       for (const p of this.level.platforms) {
         const r = this.worldToScreen(p);
@@ -658,7 +761,6 @@
         ctx.fill();
       }
 
-      // coins
       ctx.fillStyle = COIN_COLOR;
       for (const c of this.level.coins) {
         const r = this.worldToScreen(c);
@@ -667,10 +769,8 @@
         ctx.fill();
       }
 
-      // portal glow
       this.drawPortalGlow(nowMs);
 
-      // player
       const pl = this.worldToScreen(this.player.rect);
       ctx.fillStyle = PLAYER_COLOR;
       roundRect(ctx, pl.x, pl.y, pl.w, pl.h, 8);
@@ -680,7 +780,6 @@
     }
 
     drawStart() {
-      const ctx = this.ctx;
       ctx.fillStyle = BG_COLOR;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -696,10 +795,10 @@
         "• Jump with Space (or W / Up Arrow)",
         "• Collect ALL coins in the level to unlock the portal",
         "• Touch the portal to start a 4-question quiz",
-        "• Answer with keys 1 / 2 / 3",
+        "• Answer with keys 1 / 2 / 3 (or tap the answers on mobile)",
         `• You have ${MAX_LIVES} lives (wrong answers reduce lives)`,
         "",
-        "Press ENTER to start"
+        "Press ENTER to start (desktop)  •  Tap anywhere to start (mobile)"
       ];
       let y = 185;
       for (const line of lines) {
@@ -711,7 +810,6 @@
 
     drawQuestion(nowMs) {
       this.drawWorld(nowMs);
-      const ctx = this.ctx;
 
       const card = rect(80, 90, WIDTH - 160, HEIGHT - 180);
       ctx.fillStyle = "#ffffff";
@@ -740,19 +838,30 @@
         y += 24;
       }
 
-      y += 10;
+      // options: draw as tappable rows
+      this.optionRects = [];
+      y += 12;
       for (let i = 0; i < q.options.length; i++) {
-        ctx.fillText(`${i+1}) ${q.options[i]}`, card.x + 20, y);
-        y += 30;
+        const row = rect(card.x + 18, y - 18, card.w - 36, 40);
+        this.optionRects.push(row);
+
+        ctx.fillStyle = "rgba(226,230,238,0.65)";
+        roundRect(ctx, row.x, row.y, row.w, row.h, 12);
+        ctx.fill();
+
+        ctx.fillStyle = TEXT_COLOR;
+        ctx.font = "20px Arial";
+        ctx.fillText(`${i+1}) ${q.options[i]}`, row.x + 14, y + 10);
+
+        y += 52;
       }
 
       ctx.fillStyle = "#555";
       ctx.font = "16px Arial";
-      ctx.fillText("Press 1 / 2 / 3 to answer", card.x + 20, card.y + card.h - 18);
+      ctx.fillText("Press 1 / 2 / 3 or tap an answer", card.x + 20, card.y + card.h - 18);
     }
 
     drawFeedback() {
-      const ctx = this.ctx;
       ctx.fillStyle = BG_COLOR;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -776,7 +885,6 @@
     }
 
     drawWin() {
-      const ctx = this.ctx;
       ctx.fillStyle = BG_COLOR;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -792,7 +900,6 @@
     }
 
     drawGameOver() {
-      const ctx = this.ctx;
       ctx.fillStyle = BG_COLOR;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -806,12 +913,10 @@
       ctx.fillText("You ran out of lives.", (WIDTH - ctx.measureText("You ran out of lives.").width)/2, 260);
 
       ctx.font = "16px Arial";
-      ctx.fillText("Press R to restart, or ESC to go to Start screen.", (WIDTH - ctx.measureText("Press R to restart, or ESC to go to Start screen.").width)/2, 292);
+      ctx.fillText("Press R to restart (desktop) or refresh page (mobile).", (WIDTH - ctx.measureText("Press R to restart (desktop) or refresh page (mobile).").width)/2, 292);
     }
 
     drawQuitModal() {
-      const ctx = this.ctx;
-
       ctx.save();
       ctx.globalAlpha = 0.35;
       ctx.fillStyle = "#000";
@@ -838,23 +943,22 @@
 
       ctx.font = "18px Arial";
       ctx.fillStyle = "#3c4652";
-      const a = "Press ENTER to Resume";
-      const b = "Press Q to Quit to Start screen";
+      const a = "Tap upper area to Resume";
+      const b = "Tap lower area to Quit to Start screen";
       ctx.fillText(a, x + (cardW - ctx.measureText(a).width)/2, y + 125);
       ctx.fillText(b, x + (cardW - ctx.measureText(b).width)/2, y + 155);
-
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#7a8492";
-      const note = "(Browser can’t close the tab automatically.)";
-      ctx.fillText(note, x + (cardW - ctx.measureText(note).width)/2, y + 190);
     }
 
-    // ----------------------------
-    // UPDATE + RENDER
-    // ----------------------------
     update(nowMs) {
+      // Merge keyboard + touch
+      const input = {
+        left:  (keys.has("a") || keys.has("arrowleft")  || touchState.left),
+        right: (keys.has("d") || keys.has("arrowright") || touchState.right),
+        jump:  (keys.has(" ") || keys.has("w") || keys.has("arrowup") || touchState.jump),
+      };
+
       if (this.mode === "play") {
-        this.player.update(this.level.platforms, nowMs);
+        this.player.update(this.level.platforms, nowMs, input);
         this.collectCoins();
         this.updateCamera(false);
 
@@ -881,35 +985,22 @@
       if (this.mode === "feedback") return this.drawFeedback();
       if (this.mode === "win") return this.drawWin();
       if (this.mode === "game_over") return this.drawGameOver();
-      if (this.mode === "quit") {
-        this.drawWorld(nowMs);
-        return this.drawQuitModal();
-      }
+      if (this.mode === "quit") { this.drawWorld(nowMs); return this.drawQuitModal(); }
     }
   }
 
   // ============================================================
   // BOOT
   // ============================================================
-  const canvas = document.getElementById("game");
-  const game = new Game(canvas);
+  const game = new Game();
 
   // First paint immediately (so never blank)
   game.render(performance.now());
 
-  // Main loop
-  let last = performance.now();
   function loop(now) {
-    const dt = now - last;
-    if (dt > 50) last = now - 50; // clamp
-
     game.update(now);
     game.render(now);
-
-    last = now;
     requestAnimationFrame(loop);
   }
-
   requestAnimationFrame(loop);
 })();
-
