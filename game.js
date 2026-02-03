@@ -753,7 +753,15 @@
     drawWorld(nowMs) {
       ctx.fillStyle = BG_COLOR;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
+// --- Prevent world from drawing under the HUD ---
+const hudTop = 12;
+const hudHeight = 66;
+const hudBottom = hudTop + hudHeight + 10; // small padding
 
+ctx.save();
+ctx.beginPath();
+ctx.rect(0, hudBottom, WIDTH, HEIGHT - hudBottom);
+ctx.clip();
       ctx.fillStyle = PLATFORM_COLOR;
       for (const p of this.level.platforms) {
         const r = this.worldToScreen(p);
@@ -775,7 +783,7 @@
       ctx.fillStyle = PLAYER_COLOR;
       roundRect(ctx, pl.x, pl.y, pl.w, pl.h, 8);
       ctx.fill();
-
+ctx.restore(); // stop clipping before drawing HUD
       this.drawHUD(nowMs);
     }
 
@@ -1004,4 +1012,5 @@
   }
   requestAnimationFrame(loop);
 })();
+
 
