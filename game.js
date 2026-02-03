@@ -152,12 +152,12 @@
 
   function resizeCanvas() {
     // Fit inside viewport while keeping aspect ratio
-    const pad = 20;
-    const topUI = 90; // room for hint bar on mobile/desktop
+    const pad = 12;
+    const topUI = 60; // room for hint bar on mobile/desktop
     const maxW = Math.max(320, window.innerWidth - pad);
     const maxH = Math.max(260, window.innerHeight - topUI - pad);
 
-    const scale = Math.min(maxW / WIDTH, maxH / HEIGHT, 1);
+    const scale = Math.min(maxW / WIDTH, maxH / HEIGHT);
 
     // CSS size
     canvas.style.width = Math.floor(WIDTH * scale) + "px";
@@ -1004,3 +1004,4 @@
   }
   requestAnimationFrame(loop);
 })();
+
