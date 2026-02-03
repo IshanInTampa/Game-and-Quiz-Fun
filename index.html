@@ -2,23 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Time Travel Platformer + Quiz</title>
   <style>
-    html, body { margin:0; padding:0; background:#f5f7fa; font-family: Arial, sans-serif; }
-    #wrap { display:flex; justify-content:center; align-items:center; height:100vh; }
-    canvas { background:#f5f7fa; border:1px solid #e2e6ee; border-radius:12px; }
+    html, body { margin:0; padding:0; background:#f5f7fa; font-family: Arial, sans-serif; height:100%; }
+    body { overscroll-behavior: none; }
+    #wrap {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      padding: 10px 10px 16px;
+      box-sizing: border-box;
+    }
+    canvas {
+      background:#f5f7fa;
+      border:1px solid #e2e6ee;
+      border-radius:12px;
+      touch-action: none; /* IMPORTANT: lets us handle touch */
+      max-width: 100%;
+      height: auto;
+    }
     .hint {
-      position: fixed; top: 10px; left: 0; right: 0;
-      text-align:center; color:#3c4652; font-size: 13px;
+      position: sticky;
+      top: 0;
+      padding: 10px 8px 8px;
+      text-align:center;
+      color:#3c4652;
+      font-size: 13px;
       user-select:none;
+      background: rgba(245,247,250,0.92);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid #e2e6ee;
     }
   </style>
 </head>
 <body>
-  <div class="hint">Keyboard: A/D or ←/→ move • Space/W/↑ jump • 1/2/3 answer • Enter start • Esc quit</div>
+  <div class="hint">
+    Desktop: A/D or ←/→ move • Space/W/↑ jump • 1/2/3 answer • Enter start • Esc quit
+    <br/>
+    Mobile: Tap to start • Touch left/right side to move • Tap right-lower area to jump • Tap answers
+  </div>
+
   <div id="wrap">
-    <canvas id="game" width="960" height="540"></canvas>
+    <canvas id="game"></canvas>
   </div>
 
   <script src="game.js"></script>
