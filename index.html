@@ -2,52 +2,115 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
   <title>Time Travel Platformer + Quiz</title>
+
   <style>
-    html, body { margin:0; padding:0; background:#f5f7fa; font-family: Arial, sans-serif; height:100%; }
-    body { overscroll-behavior: none; }
-    #wrap {
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      min-height:100vh;
-      padding: 10px 10px 16px;
-      box-sizing: border-box;
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+      font-family: Arial, sans-serif;
+      height: 100%;
     }
-    canvas {
-      background:#f5f7fa;
-      border:1px solid #e2e6ee;
-      border-radius:12px;
-      touch-action: none; /* IMPORTANT: lets us handle touch */
-      max-width: 100%;
-      height: auto;
+
+    body {
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
     }
+
+    /* ---------- Instruction Header ---------- */
     .hint {
       position: sticky;
       top: 0;
-      padding: 10px 8px 8px;
-      text-align:center;
-      color:#3c4652;
-      font-size: 13px;
-      user-select:none;
-      background: rgba(245,247,250,0.92);
+      z-index: 10;
+      padding: 6px 8px;
+      text-align: center;
+      color: #3c4652;
+      font-size: 12px;
+      line-height: 1.25;
+      background: rgba(245,247,250,0.94);
       backdrop-filter: blur(6px);
       border-bottom: 1px solid #e2e6ee;
+      user-select: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+
+    .tag.desktop {
+      background: #e8f1ff;
+      color: #1e4fbf;
+      border: 1px solid #cfe0ff;
+    }
+
+    .tag.mobile {
+      background: #e9fbf1;
+      color: #147828;
+      border: 1px solid #cdeedb;
+    }
+
+    /* ---------- Game Container ---------- */
+    #wrap {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* IMPORTANT for mobile */
+      padding: 10px 10px 18px;
+      box-sizing: border-box;
+      min-height: calc(100dvh - 56px);
+    }
+
+    @supports not (height: 100dvh) {
+      #wrap {
+        min-height: calc(100vh - 56px);
+      }
+    }
+
+    canvas {
+      background: #f5f7fa;
+      border: 1px solid #e2e6ee;
+      border-radius: 12px;
+      display: block;
+      touch-action: none;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* ---------- Phone polish ---------- */
+    @media (max-width: 480px) {
+      .hint {
+        font-size: 11px;
+        padding: 5px 6px;
+      }
     }
   </style>
 </head>
+
 <body>
+  <!-- Instruction Bar -->
   <div class="hint">
-    Desktop: A/D or ←/→ move • Space/W/↑ jump • 1/2/3 answer • Enter start • Esc quit
+    <span class="tag desktop">Desktop</span>
+    A/D or ←/→ move • Space/W/↑ jump • 1/2/3 answer • Enter start • Esc quit
     <br/>
-    Mobile: Tap to start • Touch left/right side to move • Tap right-lower area to jump • Tap answers
+    <span class="tag mobile">Mobile</span>
+    Tap to start • Touch left/right to move • Bottom-right jump • Tap answers
   </div>
 
+  <!-- Game Canvas -->
   <div id="wrap">
     <canvas id="game"></canvas>
   </div>
 
+  <!-- Game Logic -->
   <script src="game.js"></script>
 </body>
 </html>
